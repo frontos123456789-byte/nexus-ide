@@ -136,7 +136,7 @@ export function ShellView({ active }: { active: boolean }) {
       ref={ref}
       onScroll={onScroll}
       onClick={() => inputRef.current?.focus()}
-      className="h-full overflow-y-auto px-3 py-2 font-mono text-[12px] leading-[1.65]"
+      className="h-full overflow-y-auto overscroll-contain px-3 py-2 font-mono text-[12px] mobile:text-[13px] leading-[1.65]"
     >
       {lines.map((l) =>
         l.kind === "cmd" ? (
@@ -166,6 +166,8 @@ export function ShellView({ active }: { active: boolean }) {
           spellCheck={false}
           autoComplete="off"
           autoCapitalize="off"
+          autoCorrect="off"
+          enterKeyHint="send"
           aria-label="Ввод команды терминала"
           className="min-w-0 flex-1 bg-transparent text-foreground caret-accent-soft outline-none"
         />

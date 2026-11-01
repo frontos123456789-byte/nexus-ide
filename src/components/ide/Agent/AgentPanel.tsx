@@ -36,9 +36,9 @@ function ModelBadge() {
         </div>
       }
     >
-      <div className="flex min-w-0 items-center gap-1.5 rounded-md border border-border bg-background px-2 py-0.5 text-[10px] text-subtle" aria-live="polite">
+      <div className="flex min-w-0 items-center gap-1.5 rounded-md border border-border bg-background px-2 py-0.5 mobile:py-1.5 text-[10px] mobile:text-[11px] text-subtle" aria-live="polite">
         <span className={cn("size-1.5 shrink-0 rounded-full", DOT[ai.state])} />
-        <span className="max-w-[130px] truncate">
+        <span className="max-w-[130px] mobile:max-w-[44vw] truncate">
           {ai.state === "switching" ? "Переключение…" : (ai.modelLabel ?? "Авто-выбор модели")}
         </span>
       </div>
@@ -59,11 +59,11 @@ export function AgentPanel() {
 
   return (
     <aside className="flex h-full min-w-0 flex-col bg-panel" aria-label="ИИ-агент">
-      <div className="flex shrink-0 flex-col gap-2 border-b border-border p-2.5">
+      <div className="flex shrink-0 flex-col gap-2 mobile:gap-2.5 border-b border-border p-2.5">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5">
             <Bot className="size-4 text-accent-soft" />
-            <span className="text-xs font-semibold text-foreground">Агент</span>
+            <span className="text-xs mobile:text-sm font-semibold text-foreground">Агент</span>
           </div>
           <div className="flex min-w-0 items-center gap-1">
             <ModelBadge />
@@ -71,7 +71,7 @@ export function AgentPanel() {
               <button
                 onClick={clear}
                 aria-label="Очистить историю режима"
-                className="grid size-6 place-items-center rounded text-muted transition-colors hover:bg-hover hover:text-foreground"
+                className="grid size-6 mobile:size-9 place-items-center rounded text-muted transition-colors hover:bg-hover hover:text-foreground"
               >
                 <Eraser className="size-3.5" />
               </button>

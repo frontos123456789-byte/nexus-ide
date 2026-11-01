@@ -9,7 +9,7 @@ export function Breadcrumbs({ path }: { path: string }) {
   return (
     <nav
       aria-label="Путь к файлу"
-      className="flex h-6 shrink-0 items-center gap-0.5 overflow-hidden border-b border-border bg-background px-3 text-[11px] text-muted"
+      className="flex h-6 mobile:h-7 shrink-0 items-center gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden border-b border-border bg-background px-3 text-[11px] text-muted"
     >
       {parts.map((part, i) => {
         const full = parts.slice(0, i + 1).join("/");

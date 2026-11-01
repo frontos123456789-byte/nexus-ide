@@ -42,7 +42,7 @@ export function Collapsible({
       <button
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left text-[11px] text-muted transition-colors hover:text-subtle"
+        className="flex w-full items-center gap-1.5 px-2.5 py-1.5 mobile:py-3 text-left text-[11px] mobile:text-xs text-muted transition-colors hover:text-subtle"
       >
         <ChevronRight className={cn("size-3 shrink-0 transition-transform duration-150", open && "rotate-90")} />
         {icon}
@@ -62,7 +62,7 @@ const MODE_TIPS: Record<AgentMode, string> = {
 
 export function ExamplePrompts({ mode }: { mode: AgentMode }) {
   return (
-    <div className="flex h-full flex-col justify-center px-4 py-6 animate-slide-up">
+    <div className="flex h-full flex-col justify-center mobile:justify-start overflow-y-auto px-4 py-6 animate-slide-up">
       <div className="mb-4 flex items-center gap-2.5">
         <span className="grid size-8 place-items-center rounded-lg bg-accent/15 text-accent-soft">
           <Sparkles className="size-4" />
@@ -78,10 +78,10 @@ export function ExamplePrompts({ mode }: { mode: AgentMode }) {
           <button
             key={ex.title}
             onClick={() => runPrompt(mode, ex.prompt)}
-            className="group rounded-lg border border-border bg-background px-3 py-2 text-left transition-all hover:-translate-y-px hover:border-accent/50 hover:bg-accent/5"
+            className="group rounded-lg border border-border bg-background px-3 py-2 mobile:py-3 text-left transition-all hover:-translate-y-px hover:border-accent/50 hover:bg-accent/5"
           >
-            <span className="block text-xs font-medium text-foreground">{ex.title}</span>
-            <span className="mt-0.5 line-clamp-2 block text-[11px] leading-snug text-muted group-hover:text-subtle">
+            <span className="block text-xs mobile:text-sm font-medium text-foreground">{ex.title}</span>
+            <span className="mt-0.5 line-clamp-2 block text-[11px] mobile:text-xs leading-snug text-muted group-hover:text-subtle">
               {ex.prompt}
             </span>
           </button>

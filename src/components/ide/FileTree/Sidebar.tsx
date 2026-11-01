@@ -13,7 +13,7 @@ function IconButton({ label, onClick, children }: { label: string; onClick: () =
       <button
         onClick={onClick}
         aria-label={label}
-        className="grid size-6 place-items-center rounded text-muted transition-colors hover:bg-hover hover:text-foreground"
+        className="grid size-6 mobile:size-10 place-items-center rounded text-muted transition-colors hover:bg-hover hover:text-foreground active:bg-hover"
       >
         {children}
       </button>
@@ -32,21 +32,21 @@ export function Sidebar() {
   const count = useIdeStore((s) => Object.keys(s.nodes).length);
   return (
     <aside className="flex h-full min-w-0 flex-col bg-panel" aria-label="Проводник">
-      <div className="flex h-9 shrink-0 items-center justify-between px-3">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">Проводник</span>
+      <div className="flex h-9 mobile:h-12 shrink-0 items-center justify-between px-3">
+        <span className="text-[10px] mobile:text-xs font-semibold uppercase tracking-[0.12em] text-muted">Проводник</span>
         <div className="flex items-center">
           <IconButton label="Новый файл" onClick={() => void promptNewFile(targetDir())}>
-            <FilePlus2 className="size-3.5" />
+            <FilePlus2 className="size-3.5 mobile:size-5" />
           </IconButton>
           <IconButton label="Новая папка" onClick={() => void promptNewFolder(targetDir())}>
-            <FolderPlus className="size-3.5" />
+            <FolderPlus className="size-3.5 mobile:size-5" />
           </IconButton>
           <IconButton label="Свернуть всё" onClick={() => useIdeStore.getState().collapseAll()}>
-            <ChevronsDownUp className="size-3.5" />
+            <ChevronsDownUp className="size-3.5 mobile:size-5" />
           </IconButton>
         </div>
       </div>
-      <div className="flex h-6 shrink-0 items-center px-3 text-[11px] font-semibold uppercase tracking-wide text-subtle">
+      <div className="flex h-6 mobile:h-8 shrink-0 items-center px-3 text-[11px] mobile:text-xs font-semibold uppercase tracking-wide text-subtle">
         <span className="truncate">nexus-demo</span>
         <span className="ml-auto font-normal normal-case text-muted">{count}</span>
       </div>

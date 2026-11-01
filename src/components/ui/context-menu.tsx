@@ -12,7 +12,7 @@ export function ContextMenuContent({ className, ...props }: React.ComponentProps
     <ContextMenuPrimitive.Portal>
       <ContextMenuPrimitive.Content
         className={cn(
-          "z-[90] min-w-[190px] overflow-hidden rounded-lg border border-border-strong bg-panel-2 p-1 text-xs text-foreground shadow-2xl shadow-black/60 animate-fade-in",
+          "z-[90] min-w-[190px] mobile:min-w-[230px] overflow-hidden rounded-lg border border-border-strong bg-panel-2 p-1 text-xs text-foreground shadow-2xl shadow-black/60 animate-fade-in",
           className,
         )}
         {...props}
@@ -31,9 +31,9 @@ export function ContextMenuItem({
   return (
     <ContextMenuPrimitive.Item
       className={cn(
-        "flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1.5 outline-none transition-colors data-[highlighted]:bg-accent/20 data-[highlighted]:text-white",
+        "flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1.5 mobile:gap-3 mobile:px-3 mobile:py-3 mobile:text-sm outline-none transition-colors data-[highlighted]:bg-accent/20 data-[highlighted]:text-white",
         danger && "text-red-400 data-[highlighted]:bg-red-500/15 data-[highlighted]:text-red-300",
-        "data-[disabled]:opacity-40 [&_svg]:size-3.5 [&_svg]:text-muted",
+        "data-[disabled]:opacity-40 [&_svg]:size-3.5 mobile:[&_svg]:size-4 [&_svg]:text-muted",
         className,
       )}
       {...props}

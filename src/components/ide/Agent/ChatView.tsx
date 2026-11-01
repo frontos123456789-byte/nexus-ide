@@ -111,7 +111,7 @@ function AssistantMessage({ m, isLast, busy }: { m: UiMessage; isLast: boolean; 
         )}
 
         {m.status === "done" && m.content && (
-          <div className="mt-1 flex items-center gap-1 opacity-0 transition-opacity group-hover/msg:opacity-100 focus-within:opacity-100">
+          <div className="mt-1 flex items-center gap-1 opacity-0 mobile:opacity-100 transition-opacity group-hover/msg:opacity-100 focus-within:opacity-100">
             <CopyButton text={m.content} />
             {isLast && !busy && (
               <button
@@ -150,7 +150,7 @@ export function ChatView() {
         {messages.map((m, i) =>
           m.role === "user" ? (
             <div key={m.id} className="flex justify-end animate-slide-up">
-              <div className="max-w-[88%] whitespace-pre-wrap break-words rounded-2xl rounded-tr-md border border-border-strong bg-hover px-3 py-2 text-[13px] leading-relaxed text-foreground">
+              <div className="max-w-[88%] mobile:max-w-[92%] whitespace-pre-wrap break-words rounded-2xl rounded-tr-md border border-border-strong bg-hover px-3 py-2 text-[13px] leading-relaxed text-foreground">
                 {m.content}
               </div>
             </div>

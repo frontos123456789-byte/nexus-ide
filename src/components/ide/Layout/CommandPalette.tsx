@@ -28,6 +28,7 @@ import { confirmResetWorkspace, promptNewFile, promptNewFolder } from "@/lib/sto
 import { useIdeStore, type AgentMode } from "@/lib/store/ide";
 import { detectMac, formatShortcut } from "@/lib/utils/hotkeys";
 import { playSound } from "@/lib/utils/sound";
+import { MOBILE_QUERY } from "@/lib/utils/use-mobile";
 import { FileIcon } from "../FileTree/FileIcon";
 import { SHORTCUTS } from "./useIdeHotkeys";
 
@@ -40,7 +41,7 @@ interface Action {
 }
 
 const ITEM =
-  "flex cursor-default items-center gap-2.5 rounded-md px-2.5 py-2 text-xs text-subtle outline-none data-[selected=true]:bg-accent/20 data-[selected=true]:text-white [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted data-[selected=true]:[&_svg]:text-accent-soft";
+  "flex cursor-default items-center gap-2.5 rounded-md px-2.5 py-2 mobile:py-3 text-xs mobile:text-sm text-subtle outline-none data-[selected=true]:bg-accent/20 data-[selected=true]:text-white [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted data-[selected=true]:[&_svg]:text-accent-soft";
 const GROUP = "px-1 py-1 [&_[cmdk-group-heading]]:px-2.5 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-muted";
 
 export function CommandPalette() {
@@ -66,6 +67,7 @@ export function CommandPalette() {
 
   const actions = useMemo<Action[]>(() => {
     const ide = () => useIdeStore.getState();
+    const phone = window.matchMedia(MOBILE_QUERY).matches;
     const setMode = (m: AgentMode) => () => {
       ide().setAgentMode(m);
       ide().focusAgent();
@@ -77,9 +79,9 @@ export function CommandPalette() {
       { id: "focus-agent", label: "Фокус на агенте", hint: formatShortcut(SHORTCUTS.agent, mac), icon: <Bot />, run: () => ide().focusAgent() },
       { id: "new-file", label: "Новый файл…", icon: <FilePlus2 />, run: () => void promptNewFile("") },
       { id: "new-folder", label: "Новая папка…", icon: <FolderPlus />, run: () => void promptNewFolder("") },
-      { id: "toggle-sidebar", label: "Показать/скрыть сайдбар", hint: formatShortcut(SHORTCUTS.sidebar, mac), icon: <PanelLeft />, run: () => ide().setSidebarVisible(!ide().sidebarVisible) },
-      { id: "toggle-terminal", label: "Показать/скрыть терминал", hint: formatShortcut(SHORTCUTS.terminal, mac), icon: <PanelBottom />, run: () => ide().setBottomVisible(!ide().bottomVisible) },
-      { id: "toggle-agent", label: "Показать/скрыть панель агента", hint: formatShortcut(SHORTCUTS.toggleAgent, mac), icon: <PanelRight />, run: () => ide().setAgentVisible(!ide().agentVisible) },
+      { id: "toggle-sidebar", label: phone ? "Открыть файлы" : "Показать/скрыть сайдбар", hint: formatShortcut(SHORTCUTS.sidebar, mac), icon: <PanelLeft />, run: () => (phone ? ide().setMobileTab("files") : ide().setSidebarVisible(!ide().sidebarVisible)) },
+      { id: "toggle-terminal", label: phone ? "Открыть терминал" : "Показать/скрыть терминал", hint: formatShortcut(SHORTCUTS.terminal, mac), icon: <PanelBottom />, run: () => (phone ? ide().setMobileTab("terminal") : ide().setBottomVisible(!ide().bottomVisible)) },
+      { id: "toggle-agent", label: phone ? "Открыть агента" : "Показать/скрыть панель агента", hint: formatShortcut(SHORTCUTS.toggleAgent, mac), icon: <PanelRight />, run: () => (phone ? ide().setMobileTab("agent") : ide().setAgentVisible(!ide().agentVisible)) },
       {
         id: "toggle-sound",
         label: ide().soundEnabled ? "Выключить звуки" : "Включить звуки",
@@ -113,7 +115,7 @@ export function CommandPalette() {
         <DialogPrimitive.Overlay className="fixed inset-0 z-[80] bg-black/55 backdrop-blur-[2px] animate-fade-in" />
         <DialogPrimitive.Content
           aria-describedby={undefined}
-          className="fixed left-1/2 top-[13vh] z-[81] w-[min(94vw,620px)] -translate-x-1/2 overflow-hidden rounded-xl border border-border-strong bg-panel-2 shadow-2xl shadow-black/70 outline-none animate-slide-up"
+          className="fixed left-1/2 top-[13vh] mobile:top-[calc(env(safe-area-inset-top)+8px)] z-[81] w-[min(94vw,620px)] -translate-x-1/2 overflow-hidden rounded-xl border border-border-strong bg-panel-2 shadow-2xl shadow-black/70 outline-none animate-slide-up"
         >
           <DialogPrimitive.Title className="sr-only">Командная палитра</DialogPrimitive.Title>
           <Command loop label="Командная палитра">
@@ -122,9 +124,9 @@ export function CommandPalette() {
               onValueChange={setQuery}
               autoFocus
               placeholder={filesOnly ? "Перейти к файлу…" : "Введите команду, имя файла или вопрос агенту…"}
-              className="h-12 w-full border-b border-border bg-transparent px-4 text-sm text-foreground outline-none placeholder:text-muted"
+              className="h-12 mobile:h-14 w-full border-b border-border bg-transparent px-4 text-sm text-foreground outline-none placeholder:text-muted"
             />
-            <Command.List className="max-h-[52vh] overflow-y-auto p-1">
+            <Command.List className="max-h-[52vh] mobile:max-h-[calc(var(--app-h,100dvh)-96px)] overflow-y-auto overscroll-contain p-1">
               <Command.Empty className="px-4 py-6 text-center text-xs text-muted">Ничего не найдено</Command.Empty>
 
               {files.length > 0 && (
@@ -136,6 +138,7 @@ export function CommandPalette() {
                       className={ITEM}
                       onSelect={() => {
                         useIdeStore.getState().openFile(path);
+                        useIdeStore.getState().setMobileTab("editor");
                         close();
                       }}
                     >
@@ -161,7 +164,7 @@ export function CommandPalette() {
                       >
                         {a.icon}
                         <span>{a.label}</span>
-                        {a.hint && <span className="ml-auto font-mono text-[10px] text-muted">{a.hint}</span>}
+                        {a.hint && <span className="ml-auto font-mono text-[10px] text-muted mobile:hidden">{a.hint}</span>}
                       </Command.Item>
                     ))}
                   </Command.Group>

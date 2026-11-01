@@ -41,8 +41,8 @@ export function WelcomeScreen() {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col justify-center px-8 py-10 animate-slide-up">
-        <div className="mb-8 flex items-center gap-4">
+      <div className="mx-auto flex min-h-full w-full max-w-3xl flex-col justify-center px-8 mobile:px-4 py-10 mobile:py-6 animate-slide-up">
+        <div className="mb-8 mobile:mb-5 flex items-center gap-4">
           <Logo className="size-12" />
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-foreground">Nexus IDE</h1>
@@ -67,7 +67,7 @@ export function WelcomeScreen() {
                     <button
                       key={ex.title}
                       onClick={() => runPrompt(mode, ex.prompt)}
-                      className="rounded-md border border-border bg-background px-2.5 py-1.5 text-left text-[11px] text-subtle transition-all hover:border-accent/50 hover:bg-accent/10 hover:text-foreground"
+                      className="rounded-md border border-border bg-background px-2.5 py-1.5 mobile:py-3 text-left text-[11px] mobile:text-xs text-subtle transition-all hover:border-accent/50 hover:bg-accent/10 hover:text-foreground"
                     >
                       {ex.title}
                     </button>
@@ -84,13 +84,13 @@ export function WelcomeScreen() {
             <div className="flex flex-col gap-0.5">
               <button
                 onClick={() => void promptNewFile("")}
-                className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-subtle transition-colors hover:bg-hover hover:text-foreground"
+                className="flex items-center gap-2 rounded-md px-2 py-1.5 mobile:py-2.5 text-left text-xs mobile:text-sm text-subtle transition-colors hover:bg-hover hover:text-foreground"
               >
                 <FilePlus2 className="size-4 text-muted" /> Новый файл
               </button>
               <button
                 onClick={() => useIdeStore.getState().openPalette("files")}
-                className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-subtle transition-colors hover:bg-hover hover:text-foreground"
+                className="flex items-center gap-2 rounded-md px-2 py-1.5 mobile:py-2.5 text-left text-xs mobile:text-sm text-subtle transition-colors hover:bg-hover hover:text-foreground"
               >
                 <Search className="size-4 text-muted" /> Открыть файл…
               </button>
@@ -102,14 +102,14 @@ export function WelcomeScreen() {
                 <button
                   key={f.path}
                   onClick={() => useIdeStore.getState().openFile(f.path)}
-                  className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs text-subtle transition-colors hover:bg-hover hover:text-foreground"
+                  className="flex items-center gap-2 rounded-md px-2 py-1.5 mobile:py-2.5 text-left text-xs mobile:text-sm text-subtle transition-colors hover:bg-hover hover:text-foreground"
                 >
                   <FileIcon path={f.path} /> <span className="truncate">{f.path}</span>
                 </button>
               ))}
             </div>
           </div>
-          <div>
+          <div className="mobile:hidden">
             <h2 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">Горячие клавиши</h2>
             <div className="flex flex-col gap-1.5">
               {shortcuts.map(([label, keys]) => (

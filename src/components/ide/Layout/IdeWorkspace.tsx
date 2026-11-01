@@ -17,6 +17,8 @@ import { DialogHost } from "./DialogHost";
 import { StatusBar } from "./StatusBar";
 import { TitleBar } from "./TitleBar";
 import { useIdeHotkeys } from "./useIdeHotkeys";
+import { useIsMobile } from "@/lib/utils/use-mobile";
+import { MobileShell } from "../Mobile/MobileShell";
 
 function HandleH() {
   return <PanelResizeHandle className="resize-handle" />;
@@ -28,6 +30,7 @@ export function IdeWorkspace() {
   const sidebar = useIdeStore((s) => s.sidebarVisible);
   const bottom = useIdeStore((s) => s.bottomVisible);
   const agent = useIdeStore((s) => s.agentVisible);
+  const isMobile = useIsMobile();
 
   useIdeHotkeys();
 
@@ -75,9 +78,12 @@ export function IdeWorkspace() {
   useEffect(() => {
     if (!ready || !firstRun) return;
     const t = setTimeout(() => {
+      const touch = window.matchMedia("(max-width: 860px), (pointer: coarse) and (max-height: 520px)").matches;
       toast("Добро пожаловать в Nexus IDE", {
-        description: "Нажмите ⌘/Ctrl+K для палитры команд и ⌘/Ctrl+L, чтобы сфокусироваться на агенте.",
-        duration: 7000,
+        description: touch
+          ? "Разделы — на панели внизу, поиск команд — лупа сверху."
+          : "Нажмите ⌘/Ctrl+K для палитры команд и ⌘/Ctrl+L, чтобы сфокусироваться на агенте.",
+        duration: touch ? 3500 : 7000,
       });
       void setKv("onboarded", true);
     }, 600);
@@ -85,6 +91,7 @@ export function IdeWorkspace() {
   }, [ready, firstRun]);
 
   if (!ready) return <BootScreen />;
+  if (isMobile) return <MobileShell />;
 
   return (
     <div className="flex h-dvh w-screen flex-col overflow-hidden bg-background text-foreground">

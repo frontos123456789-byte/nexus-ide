@@ -11,6 +11,8 @@ export const metadata: Metadata = {
     "Веб-IDE с ИИ-агентами: Chat, Work и Code. Director оркестрирует Coder, Reviewer и Architect параллельно. Работает на бесплатных моделях OpenRouter.",
   applicationName: "Nexus IDE",
   keywords: ["IDE", "AI", "agents", "Monaco", "OpenRouter", "Next.js"],
+  appleWebApp: { capable: true, title: "Nexus IDE", statusBarStyle: "black-translucent" },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {
@@ -18,6 +20,10 @@ export const viewport: Viewport = {
   colorScheme: "dark",
   width: "device-width",
   initialScale: 1,
+  // Phone IDE: no auto-zoom when focusing the editor/inputs, and draw under notches (safe-area paddings are applied in the UI).
+  maximumScale: 1,
+  viewportFit: "cover",
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

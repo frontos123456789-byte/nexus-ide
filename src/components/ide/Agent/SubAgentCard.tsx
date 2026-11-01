@@ -107,7 +107,7 @@ export function SubAgentCard({ agent, className }: { agent: AgentView; className
             <span className={cn("text-[11px] font-semibold", role.text)}>{role.label}</span>
             {agent.modelLabel && <span className="truncate font-mono text-[10px] text-muted">{agent.modelLabel}</span>}
           </div>
-          <div className="truncate text-xs text-foreground" title={agent.title}>
+          <div className="truncate text-xs mobile:text-[13px] text-foreground" title={agent.title}>
             {agent.title}
           </div>
         </div>
@@ -149,7 +149,7 @@ export function SubAgentCard({ agent, className }: { agent: AgentView; className
           <button
             onClick={() => setExpanded((v) => !v)}
             aria-expanded={expanded}
-            className="mt-2 flex items-center gap-1 text-[10px] text-muted transition-colors hover:text-subtle"
+            className="mt-2 flex items-center gap-1 mobile:py-1.5 text-[10px] mobile:text-xs text-muted transition-colors hover:text-subtle"
           >
             <ChevronDown className={cn("size-3 transition-transform", expanded && "rotate-180")} />
             {expanded ? "Скрыть вывод" : "Показать вывод"}

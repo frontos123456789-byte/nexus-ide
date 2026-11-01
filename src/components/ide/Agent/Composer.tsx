@@ -52,16 +52,19 @@ export function Composer() {
           ref={ref}
           value={text}
           rows={1}
+          enterKeyHint="enter"
           aria-label={`Сообщение агенту (${MODE_META[mode].label})`}
           placeholder={MODE_META[mode].placeholder}
           onChange={(e) => setDrafts((d) => ({ ...d, [mode]: e.target.value }))}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+            // On touch devices Enter inserts a newline (soft keyboards have no Shift); the arrow button sends.
+            const touch = window.matchMedia("(pointer: coarse)").matches;
+            if (e.key === "Enter" && !e.shiftKey && !touch && !e.nativeEvent.isComposing) {
               e.preventDefault();
               send();
             }
           }}
-          className="block max-h-[168px] w-full resize-none bg-transparent px-3 pt-2.5 pb-1 text-[13px] leading-relaxed text-foreground outline-none placeholder:text-muted"
+          className="block max-h-[168px] w-full resize-none bg-transparent px-3 pt-2.5 pb-1 text-[13px] mobile:text-base leading-relaxed text-foreground outline-none placeholder:text-muted"
         />
         <div className="flex items-center justify-between gap-2 px-2 pb-2">
           <Tip label={includeContext ? "Контекст проекта включён" : "Контекст проекта выключен"} side="top">
@@ -69,7 +72,7 @@ export function Composer() {
               onClick={() => useAgentStore.getState().setIncludeContext(!includeContext)}
               aria-pressed={includeContext}
               className={cn(
-                "flex min-w-0 items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] transition-colors",
+                "flex min-w-0 items-center gap-1.5 rounded-md border px-2 py-1 mobile:py-2 text-[10px] mobile:text-[11px] transition-colors",
                 includeContext
                   ? "border-accent/30 bg-accent/10 text-accent-soft"
                   : "border-border text-muted hover:text-subtle",
@@ -82,13 +85,13 @@ export function Composer() {
             </button>
           </Tip>
           <div className="flex items-center gap-2">
-            <span className="hidden text-[10px] text-muted sm:inline">↵ отправить · ⇧↵ перенос</span>
+            <span className="hidden text-[10px] text-muted sm:inline mobile:!hidden">↵ отправить · ⇧↵ перенос</span>
             {busy ? (
               <Tip label="Остановить" side="top">
                 <button
                   onClick={() => stopAgent(mode)}
                   aria-label="Остановить генерацию"
-                  className="grid size-7 place-items-center rounded-lg bg-red-500/90 text-white transition-all hover:bg-red-500 active:scale-95"
+                  className="grid size-7 mobile:size-10 place-items-center rounded-lg bg-red-500/90 text-white transition-all hover:bg-red-500 active:scale-95"
                 >
                   <Square className="size-3 fill-current" />
                 </button>
@@ -98,7 +101,7 @@ export function Composer() {
                 onClick={send}
                 disabled={!text.trim()}
                 aria-label="Отправить"
-                className="grid size-7 place-items-center rounded-lg bg-accent text-white transition-all hover:bg-accent-soft active:scale-95 disabled:bg-border-strong disabled:text-muted"
+                className="grid size-7 mobile:size-10 place-items-center rounded-lg bg-accent text-white transition-all hover:bg-accent-soft active:scale-95 disabled:bg-border-strong disabled:text-muted"
               >
                 <ArrowUp className="size-4" />
               </button>

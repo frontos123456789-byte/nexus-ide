@@ -8,6 +8,7 @@ import { cursorAtom, editorReadyAtom, editorSettingsAtom } from "@/lib/store/edi
 import { editorBridge } from "@/lib/store/editor-bridge";
 import { useIdeStore } from "@/lib/store/ide";
 import { languageFromPath } from "@/lib/utils/path";
+import { MOBILE_QUERY, useIsMobile } from "@/lib/utils/use-mobile";
 import { EditorSkeleton } from "./EditorSkeleton";
 import { configureLanguages, configureMonacoLoader, defineNexusTheme, NEXUS_THEME } from "./monaco-setup";
 
@@ -19,6 +20,7 @@ export function MonacoEditor({ path }: { path: string }) {
   const value = useIdeStore((s) => s.contents[path] ?? "");
   const nodes = useIdeStore((s) => s.nodes);
   const settings = useAtomValue(editorSettingsAtom);
+  const isMobile = useIsMobile();
   const setCursor = useSetAtom(cursorAtom);
   const setReady = useSetAtom(editorReadyAtom);
   const monacoRef = useRef<typeof Monaco | null>(null);
@@ -48,7 +50,8 @@ export function MonacoEditor({ path }: { path: string }) {
         editor.onDidChangeCursorSelection(updateCursor),
         editor.onDidChangeModel(updateCursor),
       );
-      editor.focus();
+      // Don't pop the soft keyboard on phones just because a file was opened.
+      if (!window.matchMedia(MOBILE_QUERY).matches) editor.focus();
     },
     [setCursor, setReady],
   );
@@ -91,11 +94,29 @@ export function MonacoEditor({ path }: { path: string }) {
       options={{
         automaticLayout: true,
         fontFamily: FONT_FAMILY,
-        fontSize: settings.fontSize,
+        fontSize: isMobile ? Math.max(settings.fontSize, 14) : settings.fontSize,
         fontLigatures: true,
-        lineHeight: Math.round(settings.fontSize * 1.65),
-        minimap: { enabled: settings.minimap, renderCharacters: false, scale: 1 },
-        wordWrap: settings.wordWrap ? "on" : "off",
+        lineHeight: Math.round((isMobile ? Math.max(settings.fontSize, 14) : settings.fontSize) * 1.65),
+        // Phones: no minimap, wrapped lines (no sideways panning) and a compact gutter to give code the width.
+        minimap: { enabled: settings.minimap && !isMobile, renderCharacters: false, scale: 1 },
+        wordWrap: settings.wordWrap || isMobile ? "on" : "off",
+        ...(isMobile
+          ? {
+              glyphMargin: false,
+              folding: false,
+              lineNumbersMinChars: 3,
+              lineDecorationsWidth: 6,
+              stickyScroll: { enabled: false },
+              occurrencesHighlight: "off" as const,
+              renderLineHighlight: "line" as const,
+              guides: { bracketPairs: false, indentation: false },
+              quickSuggestionsDelay: 200,
+              suggestOnTriggerCharacters: true,
+              parameterHints: { enabled: false },
+              hover: { enabled: false },
+              dragAndDrop: false,
+            }
+          : {}),
         smoothScrolling: true,
         cursorBlinking: "smooth",
         cursorSmoothCaretAnimation: "on",
@@ -103,16 +124,16 @@ export function MonacoEditor({ path }: { path: string }) {
         renderLineHighlight: "all",
         bracketPairColorization: { enabled: true },
         guides: { bracketPairs: true, indentation: true },
-        padding: { top: 12, bottom: 12 },
+        padding: { top: 12, bottom: isMobile ? 96 : 12 },
         tabSize: 2,
         insertSpaces: true,
         fixedOverflowWidgets: true,
         roundedSelection: true,
-        scrollbar: { verticalScrollbarSize: 10, horizontalScrollbarSize: 10, useShadows: false },
+        scrollbar: { verticalScrollbarSize: isMobile ? 6 : 10, horizontalScrollbarSize: isMobile ? 6 : 10, useShadows: false, alwaysConsumeMouseWheel: false },
         overviewRulerBorder: false,
         hideCursorInOverviewRuler: true,
-        stickyScroll: { enabled: true },
-        mouseWheelZoom: true,
+        stickyScroll: { enabled: !isMobile },
+        mouseWheelZoom: !isMobile,
         accessibilitySupport: "off",
       }}
     />

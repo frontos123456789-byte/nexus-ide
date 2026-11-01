@@ -71,7 +71,7 @@ function StepCard({ session, step, index, busy }: { session: WorkSession; step: 
           onClick={() => toggleStepDone(session.id, step.id)}
           disabled={step.status === "running"}
           aria-label={step.status === "done" ? "Отметить невыполненным" : "Отметить выполненным"}
-          className="mt-0.5 shrink-0 rounded-full transition-transform hover:scale-110 disabled:hover:scale-100"
+          className="mt-0.5 shrink-0 rounded-full mobile:p-1.5 mobile:-m-1.5 mobile:mt-0 transition-transform hover:scale-110 disabled:hover:scale-100"
         >
           <StepIcon status={step.status} />
         </button>
@@ -219,7 +219,7 @@ function SessionView({ session }: { session: WorkSession }) {
           {busy ? (
             <button
               onClick={() => stopAgent("work")}
-              className="inline-flex h-7 items-center gap-1.5 rounded-md bg-red-500/90 px-2.5 text-xs font-medium text-white transition-colors hover:bg-red-500"
+              className="inline-flex h-7 mobile:h-10 items-center gap-1.5 rounded-md bg-red-500/90 px-2.5 text-xs font-medium text-white transition-colors hover:bg-red-500"
             >
               <Square className="size-3 fill-current" /> Остановить
             </button>
@@ -227,7 +227,7 @@ function SessionView({ session }: { session: WorkSession }) {
             <button
               onClick={() => void runAllSteps(session.id)}
               disabled={done === total}
-              className="inline-flex h-7 items-center gap-1.5 rounded-md bg-accent px-2.5 text-xs font-medium text-white transition-colors hover:bg-accent-soft disabled:bg-border-strong disabled:text-muted"
+              className="inline-flex h-7 mobile:h-10 items-center gap-1.5 rounded-md bg-accent px-2.5 text-xs font-medium text-white transition-colors hover:bg-accent-soft disabled:bg-border-strong disabled:text-muted"
             >
               <PlayCircle className="size-3.5" /> Выполнить все
             </button>
@@ -257,7 +257,7 @@ export function WorkView() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex h-9 shrink-0 items-center gap-2 border-b border-border px-3">
+      <div className="flex h-9 mobile:h-12 shrink-0 items-center gap-2 border-b border-border px-3">
         <label className="flex cursor-pointer items-center gap-2 text-[11px] text-subtle">
           <Switch checked={showThoughts} onCheckedChange={(v) => useIdeStore.getState().setShowThoughts(v)} aria-label="Показать ход мыслей" />
           <Brain className="size-3.5 text-violet-400" />
@@ -269,7 +269,7 @@ export function WorkView() {
               aria-label="История планов"
               value={activeId ?? ""}
               onChange={(e) => store.setActiveSession(e.target.value || null)}
-              className="h-6 max-w-[120px] rounded border border-border-strong bg-background px-1 text-[11px] text-subtle outline-none focus:border-accent"
+              className="h-6 mobile:h-9 max-w-[120px] mobile:max-w-[34vw] rounded border border-border-strong bg-background px-1 text-[11px] text-subtle outline-none focus:border-accent"
             >
               <option value="">Новый план</option>
               {[...sessions].reverse().map((s) => (
@@ -285,7 +285,7 @@ export function WorkView() {
                 onClick={() => store.setActiveSession(null)}
                 aria-label="Новый план"
                 title="Новый план"
-                className="grid size-6 place-items-center rounded text-muted transition-colors hover:bg-hover hover:text-foreground"
+                className="grid size-6 mobile:size-9 place-items-center rounded text-muted transition-colors hover:bg-hover hover:text-foreground"
               >
                 <ListPlus className="size-3.5" />
               </button>
@@ -293,7 +293,7 @@ export function WorkView() {
                 onClick={() => store.deleteSession(active.id)}
                 aria-label="Удалить план"
                 title="Удалить план"
-                className="grid size-6 place-items-center rounded text-muted transition-colors hover:bg-hover hover:text-red-400"
+                className="grid size-6 mobile:size-9 place-items-center rounded text-muted transition-colors hover:bg-hover hover:text-red-400"
               >
                 <Trash2 className="size-3.5" />
               </button>

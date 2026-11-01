@@ -18,7 +18,7 @@ export function EditorTabs() {
   }, [activePath, diffView]);
 
   if (openTabs.length === 0 && !diffView) {
-    return <div className="h-9 shrink-0 border-b border-border bg-panel" />;
+    return <div className="h-9 mobile:h-11 shrink-0 border-b border-border bg-panel" />;
   }
 
   const names = openTabs.map(basename);
@@ -27,7 +27,7 @@ export function EditorTabs() {
     <div
       role="tablist"
       aria-label="Открытые файлы"
-      className="flex h-9 shrink-0 items-stretch overflow-x-auto overflow-y-hidden border-b border-border bg-panel [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="flex h-9 mobile:h-11 shrink-0 items-stretch overflow-x-auto overflow-y-hidden overscroll-x-contain border-b border-border bg-panel [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       {openTabs.map((path, i) => {
         const active = !diffView && activePath === path;
@@ -51,7 +51,7 @@ export function EditorTabs() {
             }}
             title={path}
             className={cn(
-              "group relative flex min-w-0 max-w-[220px] shrink-0 cursor-pointer items-center gap-2 border-r border-border px-3 text-xs outline-none transition-colors",
+              "group relative flex min-w-0 max-w-[220px] mobile:max-w-[60vw] shrink-0 cursor-pointer items-center gap-2 border-r border-border px-3 text-xs mobile:text-[13px] outline-none transition-colors",
               active
                 ? "bg-background text-foreground"
                 : "text-muted hover:bg-hover/60 hover:text-subtle focus-visible:bg-hover/60",
@@ -68,8 +68,8 @@ export function EditorTabs() {
                 useIdeStore.getState().closeTab(path);
               }}
               className={cn(
-                "ml-1 grid size-4 shrink-0 place-items-center rounded transition-all hover:bg-border-strong",
-                active ? "opacity-70" : "opacity-0 group-hover:opacity-70 focus-visible:opacity-100",
+                "ml-1 grid size-4 mobile:size-8 mobile:-mr-2 shrink-0 place-items-center rounded transition-all hover:bg-border-strong",
+                active ? "opacity-70" : "opacity-0 mobile:opacity-60 group-hover:opacity-70 focus-visible:opacity-100",
               )}
             >
               <X className="size-3" />
@@ -90,7 +90,7 @@ export function EditorTabs() {
           <button
             aria-label="Закрыть diff"
             onClick={() => useIdeStore.getState().setDiffView(null)}
-            className="ml-1 grid size-4 place-items-center rounded opacity-70 hover:bg-border-strong"
+            className="ml-1 grid size-4 mobile:size-8 place-items-center rounded opacity-70 hover:bg-border-strong"
           >
             <X className="size-3" />
           </button>

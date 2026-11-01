@@ -30,6 +30,7 @@ export async function promptNewFile(dir = ""): Promise<void> {
   if (!value) return;
   try {
     await useIdeStore.getState().createFile(normalizePath(value));
+    useIdeStore.getState().setMobileTab("editor");
   } catch (err) {
     reportError("Не удалось создать файл", err);
   }

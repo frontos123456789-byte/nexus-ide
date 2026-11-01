@@ -21,7 +21,7 @@ function Cell({ className, ...props }: React.ComponentProps<"button">) {
   return (
     <button
       className={cn(
-        "flex h-full items-center gap-1.5 px-2 text-[11px] text-white/80 transition-colors hover:bg-white/10 hover:text-white",
+        "flex h-full items-center gap-1.5 px-2 mobile:px-2.5 text-[11px] text-white/80 transition-colors hover:bg-white/10 hover:text-white",
         className,
       )}
       {...props}
@@ -29,11 +29,11 @@ function Cell({ className, ...props }: React.ComponentProps<"button">) {
   );
 }
 
-function CursorCell() {
+function CursorCell({ className }: { className?: string }) {
   const cursor = useAtomValue(cursorAtom);
   return (
-    <Cell tabIndex={-1} aria-label="Позиция курсора">
-      Стр {cursor.line}, Стлб {cursor.column}
+    <Cell tabIndex={-1} aria-label="Позиция курсора" className={className}>
+      <span className="whitespace-nowrap">Стр {cursor.line}, Стлб {cursor.column}</span>
       {cursor.selected > 0 && <span className="text-white/60">({cursor.selected} выбр.)</span>}
     </Cell>
   );
@@ -44,6 +44,9 @@ export function StatusBar() {
   const saveState = useIdeStore((s) => s.saveState);
   const ai = useIdeStore((s) => s.ai);
   const sound = useIdeStore((s) => s.soundEnabled);
+  const mobileTab = useIdeStore((s) => s.mobileTab);
+  // Phone: cursor/language only matter in the editor; elsewhere give the width to the AI status.
+  const editorOnly = mobileTab !== "editor" ? "mobile:hidden" : undefined;
   const [settings, setSettings] = useAtom(editorSettingsAtom);
   const set = useIdeStore.getState();
 
@@ -56,9 +59,9 @@ export function StatusBar() {
   else aiText = "ИИ готов · цепочка из 7 бесплатных моделей";
 
   return (
-    <footer className="flex h-6 shrink-0 items-stretch justify-between border-t border-black/30 bg-[#4338ca] text-white select-none">
-      <div className="flex items-stretch">
-        <Cell onClick={() => set.setBottomTab("logs")} aria-label="Показать логи">
+    <footer className="flex h-6 mobile:h-7 shrink-0 items-stretch justify-between border-t border-black/30 bg-[#4338ca] text-white select-none">
+      <div className="flex min-w-0 items-stretch">
+        <Cell onClick={() => set.setBottomTab("logs")} aria-label="Показать логи" className="mobile:hidden">
           <CircleDot className="size-3" />
           <span className="font-medium">nexus-demo</span>
         </Cell>
@@ -74,7 +77,7 @@ export function StatusBar() {
           )}
         </Cell>
         <Tip label="Статус ИИ-шлюза (клик — логи)" side="top">
-          <Cell onClick={() => set.setBottomTab("logs")} aria-live="polite" className="max-w-[46vw]">
+          <Cell onClick={() => set.setBottomTab("logs")} aria-live="polite" className="max-w-[46vw] mobile:max-w-none min-w-0">
             {ai.configured === false ? (
               <AlertTriangle className="size-3 text-amber-300" />
             ) : (
@@ -86,18 +89,18 @@ export function StatusBar() {
         </Tip>
       </div>
 
-      <div className="flex items-stretch">
-        {activePath && <CursorCell />}
+      <div className="flex shrink-0 items-stretch">
+        {activePath && <CursorCell className={editorOnly} />}
         {activePath && (
-          <Cell tabIndex={-1} className="hidden sm:flex">
+          <Cell tabIndex={-1} className="hidden sm:flex mobile:!hidden">
             Пробелы: 2
           </Cell>
         )}
-        <Cell tabIndex={-1} className="hidden sm:flex">
+        <Cell tabIndex={-1} className="hidden sm:flex mobile:!hidden">
           UTF-8
         </Cell>
         {language && (
-          <Cell tabIndex={-1} aria-label="Язык файла">
+          <Cell tabIndex={-1} aria-label="Язык файла" className={cn("mobile:max-w-24 mobile:truncate", editorOnly)}>
             {language}
           </Cell>
         )}
@@ -105,7 +108,7 @@ export function StatusBar() {
           <Cell
             onClick={() => setSettings({ ...settings, wordWrap: !settings.wordWrap })}
             aria-pressed={settings.wordWrap}
-            className={cn(settings.wordWrap && "bg-white/15")}
+            className={cn("mobile:hidden", settings.wordWrap && "bg-white/15")}
           >
             <WrapText className="size-3" />
           </Cell>
@@ -117,6 +120,7 @@ export function StatusBar() {
               if (!sound) playSound("toggle", true);
             }}
             aria-pressed={sound}
+            className="mobile:hidden"
           >
             {sound ? <Volume2 className="size-3" /> : <VolumeX className="size-3" />}
           </Cell>

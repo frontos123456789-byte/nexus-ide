@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { ChevronRight, Copy, FilePlus2, FolderPlus, Pencil, Trash2, CopyPlus } from "lucide-react";
+import { ChevronRight, Copy, EllipsisVertical, FilePlus2, FolderPlus, Pencil, Trash2, CopyPlus } from "lucide-react";
 import { toast } from "sonner";
 import {
   ContextMenu,
@@ -16,9 +16,12 @@ import { useIdeStore } from "@/lib/store/ide";
 import { basename, dirname, isDescendant, joinPath, validateName } from "@/lib/utils/path";
 import { buildRows, type TreeRow } from "@/lib/utils/tree-model";
 import { cn } from "@/lib/utils/cn";
+import { useIsMobile } from "@/lib/utils/use-mobile";
 import { FileIcon } from "./FileIcon";
 
 const ROW_HEIGHT = 24;
+/** Finger-sized rows (Apple HIG / Material recommend ≥ 40px targets). */
+const ROW_HEIGHT_TOUCH = 40;
 const DND_TYPE = "text/nexus-path";
 
 function RenameInput({ row, onDone }: { row: TreeRow; onDone: () => void }) {
@@ -64,7 +67,7 @@ function RenameInput({ row, onDone }: { row: TreeRow; onDone: () => void }) {
           onDone();
         }
       }}
-      className="h-5 min-w-0 flex-1 rounded-sm border border-accent bg-background px-1 text-xs text-foreground outline-none"
+      className="h-5 mobile:h-8 min-w-0 flex-1 rounded-sm border border-accent bg-background px-1 text-xs text-foreground outline-none"
     />
   );
 }
@@ -75,6 +78,8 @@ export function FileTree() {
   const selectedPath = useIdeStore((s) => s.selectedPath);
   const activePath = useIdeStore((s) => s.activePath);
   const rows = useMemo(() => buildRows(nodes, expanded), [nodes, expanded]);
+  const isMobile = useIsMobile();
+  const rowHeight = isMobile ? ROW_HEIGHT_TOUCH : ROW_HEIGHT;
   const scrollRef = useRef<HTMLDivElement>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
@@ -83,7 +88,7 @@ export function FileTree() {
   const virtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => scrollRef.current,
-    estimateSize: () => ROW_HEIGHT,
+    estimateSize: () => rowHeight,
     overscan: 14,
   });
 
@@ -99,7 +104,10 @@ export function FileTree() {
   const activate = (row: TreeRow) => {
     store().select(row.path);
     if (row.type === "folder") store().toggleFolder(row.path);
-    else store().openFile(row.path);
+    else {
+      store().openFile(row.path);
+      store().setMobileTab("editor");
+    }
   };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
@@ -190,7 +198,7 @@ export function FileTree() {
           }}
           onDrop={(e) => void handleDrop(e, "")}
           className={cn(
-            "h-full overflow-y-auto overflow-x-hidden outline-none transition-colors",
+            "h-full overflow-y-auto overflow-x-hidden overscroll-contain outline-none transition-colors",
             dropTarget === "" && "bg-accent/5",
           )}
         >
@@ -198,7 +206,7 @@ export function FileTree() {
             <div className="px-4 py-8 text-center text-xs text-muted">
               Проект пуст.
               <br />
-              Правый клик → «Новый файл».
+              {isMobile ? "Долгое нажатие → «Новый файл»." : "Правый клик → «Новый файл»."}
             </div>
           ) : (
             <div style={{ height: virtualizer.getTotalSize(), position: "relative", width: "100%" }}>
@@ -213,7 +221,7 @@ export function FileTree() {
                         role="treeitem"
                         aria-selected={selected}
                         aria-expanded={row.type === "folder" ? row.expanded : undefined}
-                        draggable={renaming !== row.path}
+                        draggable={renaming !== row.path && !isMobile}
                         onContextMenu={(e) => {
                           e.stopPropagation();
                           store().select(row.path);
@@ -235,12 +243,12 @@ export function FileTree() {
                           top: 0,
                           left: 0,
                           width: "100%",
-                          height: ROW_HEIGHT,
+                          height: rowHeight,
                           transform: `translateY(${v.start}px)`,
-                          paddingLeft: 8 + row.depth * 12,
+                          paddingLeft: 8 + row.depth * (isMobile ? 16 : 12),
                         }}
                         className={cn(
-                          "group flex cursor-pointer items-center gap-1 pr-2 text-xs text-subtle transition-colors hover:bg-hover hover:text-foreground",
+                          "group flex cursor-pointer items-center gap-1 pr-2 text-xs mobile:gap-1.5 mobile:text-[15px] text-subtle transition-colors hover:bg-hover hover:text-foreground",
                           active && "text-foreground",
                           selected && "bg-accent/15 text-foreground hover:bg-accent/20",
                           dropTarget === dirFor(row) && dropTarget !== "" && row.type === "folder" && "bg-accent/20 outline outline-1 -outline-offset-1 outline-accent/60",
@@ -248,7 +256,7 @@ export function FileTree() {
                       >
                         <ChevronRight
                           className={cn(
-                            "size-3.5 shrink-0 text-muted transition-transform duration-150",
+                            "size-3.5 mobile:size-4 shrink-0 text-muted transition-transform duration-150",
                             row.expanded && "rotate-90",
                             row.type === "file" && "invisible",
                           )}
@@ -258,6 +266,22 @@ export function FileTree() {
                           <RenameInput row={row} onDone={() => setRenaming(null)} />
                         ) : (
                           <span className="truncate">{row.name}</span>
+                        )}
+                        {isMobile && renaming !== row.path && (
+                          // Touch has no right click: this opens the same context menu at the button position.
+                          <button
+                            aria-label={`Действия: ${row.name}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const r = e.currentTarget.getBoundingClientRect();
+                              e.currentTarget.dispatchEvent(
+                                new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: r.left, clientY: r.bottom }),
+                              );
+                            }}
+                            className="ml-auto grid size-9 shrink-0 place-items-center rounded-md text-muted active:bg-border-strong"
+                          >
+                            <EllipsisVertical className="size-4" />
+                          </button>
                         )}
                       </div>
                     </ContextMenuTrigger>

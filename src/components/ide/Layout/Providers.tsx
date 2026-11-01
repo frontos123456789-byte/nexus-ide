@@ -12,6 +12,7 @@ export function Providers({ children }: { children: ReactNode }) {
         theme="dark"
         position="top-right"
         offset={{ top: 48, right: 16 }}
+        mobileOffset={{ top: 60, left: 12, right: 12 }}
         closeButton
         toastOptions={{
           classNames: {

@@ -36,23 +36,23 @@ export function LogsView() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex h-7 shrink-0 items-center gap-1 border-b border-border px-2">
+      <div className="flex h-7 mobile:h-10 shrink-0 items-center gap-1 border-b border-border px-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {FILTERS.map((f) => (
           <button
             key={f.id}
             onClick={() => setFilter(f.id)}
             aria-pressed={filter === f.id}
             className={cn(
-              "rounded px-2 py-0.5 text-[11px] transition-colors",
+              "rounded px-2 py-0.5 mobile:px-3 mobile:py-1.5 text-[11px] mobile:text-xs transition-colors whitespace-nowrap",
               filter === f.id ? "bg-hover text-foreground" : "text-muted hover:text-subtle",
             )}
           >
             {f.label}
           </button>
         ))}
-        <span className="ml-auto text-[10px] text-muted">{visible.length} записей</span>
+        <span className="ml-auto pl-2 whitespace-nowrap text-[10px] text-muted">{visible.length} записей</span>
       </div>
-      <div ref={ref} onScroll={onScroll} className="min-h-0 flex-1 overflow-y-auto px-3 py-1.5 font-mono text-[11.5px] leading-[1.7]" role="log" aria-live="off">
+      <div ref={ref} onScroll={onScroll} className="min-h-0 flex-1 overflow-y-auto px-3 py-1.5 font-mono text-[11.5px] mobile:text-xs leading-[1.7] overscroll-contain" role="log" aria-live="off">
         {visible.length === 0 && <div className="py-4 text-center text-muted">Журнал пуст</div>}
         {visible.map((l) => {
           const st = LEVEL_STYLE[l.level];
@@ -60,7 +60,7 @@ export function LogsView() {
             <div key={l.id} className="flex gap-2.5 whitespace-pre-wrap break-words">
               <span className="shrink-0 text-muted/70">{clock(l.ts)}</span>
               <span className={cn("shrink-0 font-semibold", st.tag)}>{st.label}</span>
-              <span className="w-12 shrink-0 text-muted">{l.source}</span>
+              <span className="w-12 mobile:hidden shrink-0 text-muted">{l.source}</span>
               <span className={st.text}>{l.message}</span>
             </div>
           );

@@ -19,6 +19,8 @@ export type AgentMode = "chat" | "work" | "code";
 export type LogLevel = "info" | "warn" | "error" | "success" | "ai";
 export type AiState = "idle" | "connecting" | "streaming" | "switching" | "error";
 export type BottomTab = "logs" | "terminal";
+/** Active full-screen view in the phone layout (desktop shows all panes at once). */
+export type MobileTab = "files" | "editor" | "agent" | "terminal";
 
 export interface LogEntry {
   id: number;
@@ -68,6 +70,7 @@ export interface IdeState extends PersistedUi {
   saveState: "saved" | "saving";
   diffView: { runId: string; path: string } | null;
   focusAgentNonce: number;
+  mobileTab: MobileTab;
 
   init: () => Promise<void>;
   openFile: (path: string) => void;
@@ -98,6 +101,7 @@ export interface IdeState extends PersistedUi {
   closePalette: () => void;
   setDiffView: (v: { runId: string; path: string } | null) => void;
   focusAgent: () => void;
+  setMobileTab: (t: MobileTab) => void;
 
   log: (level: LogLevel, source: string, message: string) => void;
   clearLogs: () => void;
@@ -195,6 +199,7 @@ export const useIdeStore = create<IdeState>((set, get) => {
     saveState: "saved",
     diffView: null,
     focusAgentNonce: 0,
+    mobileTab: "editor",
 
     init: () => {
       if (initPromise) return initPromise;
@@ -430,10 +435,12 @@ export const useIdeStore = create<IdeState>((set, get) => {
       get().log("warn", "system", "Рабочее пространство сброшено до демо-проекта");
     },
 
-    setSidebarVisible: (v) => set({ sidebarVisible: v }),
-    setAgentVisible: (v) => set({ agentVisible: v }),
-    setBottomVisible: (v) => set({ bottomVisible: v }),
-    setBottomTab: (t) => set({ bottomTab: t, bottomVisible: true }),
+    // The visibility setters also steer the phone layout: "show X" == "go to the X tab".
+    setSidebarVisible: (v) => set(v ? { sidebarVisible: true, mobileTab: "files" } : { sidebarVisible: false }),
+    setAgentVisible: (v) => set(v ? { agentVisible: true, mobileTab: "agent" } : { agentVisible: false }),
+    setBottomVisible: (v) => set(v ? { bottomVisible: true, mobileTab: "terminal" } : { bottomVisible: false }),
+    setBottomTab: (t) => set({ bottomTab: t, bottomVisible: true, mobileTab: "terminal" }),
+    setMobileTab: (t) => set({ mobileTab: t }),
     setAgentMode: (m) => set({ agentMode: m }),
     setSoundEnabled: (v) => {
       applySound(v);
@@ -442,8 +449,8 @@ export const useIdeStore = create<IdeState>((set, get) => {
     setShowThoughts: (v) => set({ showThoughts: v }),
     openPalette: (mode = "all") => set({ paletteOpen: true, paletteMode: mode }),
     closePalette: () => set({ paletteOpen: false }),
-    setDiffView: (v) => set({ diffView: v }),
-    focusAgent: () => set({ agentVisible: true, focusAgentNonce: get().focusAgentNonce + 1 }),
+    setDiffView: (v) => set(v ? { diffView: v, mobileTab: "editor" } : { diffView: null }),
+    focusAgent: () => set({ agentVisible: true, mobileTab: "agent", focusAgentNonce: get().focusAgentNonce + 1 }),
 
     log: (level, source, message) => {
       const entry: LogEntry = { id: ++logSeq, ts: Date.now(), level, source, message };

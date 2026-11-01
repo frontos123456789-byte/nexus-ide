@@ -77,12 +77,12 @@ export function DialogHost() {
                   }
                 }}
                 spellCheck={false}
-                className="h-9 w-full rounded-md border border-border-strong bg-background px-3 font-mono text-xs text-foreground outline-none transition-colors placeholder:text-muted focus:border-accent"
+                className="h-9 mobile:h-11 w-full rounded-md border border-border-strong bg-background px-3 font-mono text-xs text-foreground outline-none transition-colors placeholder:text-muted focus:border-accent"
               />
               {error && <p className="mt-1.5 text-[11px] text-red-400">{error}</p>}
             </div>
           )}
-          <div className="mt-5 flex justify-end gap-2">
+          <div className="mt-5 flex justify-end gap-2 mobile:gap-3">
             <Button variant="ghost" onClick={cancel}>
               Отмена
             </Button>

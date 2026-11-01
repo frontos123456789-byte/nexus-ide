@@ -1,6 +1,12 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
+/* Phone layout. Keep in sync with MOBILE_QUERY in lib/utils/use-mobile.ts */
+@custom-variant mobile {
+  @media (max-width: 860px), (pointer: coarse) and (max-height: 520px) {
+    @slot;
+  }
+}
 
 @theme inline {
   --color-background: #0a0a0a;
@@ -98,6 +104,10 @@
     color: var(--color-foreground);
     color-scheme: dark;
     overflow: hidden;
+
+    overscroll-behavior: none;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
   body {
     font-family: var(--font-sans);
@@ -106,6 +116,18 @@
   }
   button {
     cursor: pointer;
+  }
+  /* Touch devices: no 300ms tap delay / double-tap zoom, no grey tap flash. */
+  button,
+  [role="button"],
+  [role="tab"],
+  [role="treeitem"],
+  a,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
   ::selection {
     background: rgba(99, 102, 241, 0.35);
@@ -343,5 +365,35 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* ------------------------------ touch / phones ------------------------------ */
+/* iOS zooms into any focused field with font-size < 16px. Monaco's hidden textarea is excluded. */
+@media (pointer: coarse) {
+  input:not(.inputarea):not([type="checkbox"]):not([type="radio"]),
+  textarea:not(.inputarea),
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* Roomier markdown for reading on a phone */
+@media (max-width: 860px) {
+  .md {
+    font-size: 14px;
+  }
+  .md pre code.hljs {
+    font-size: 12.5px;
+  }
+}
+
+/* Monaco: bigger touch handles feel; keep suggest widget within the narrow viewport */
+@media (max-width: 860px) {
+  .monaco-editor .suggest-widget {
+    max-width: calc(100vw - 24px);
+  }
+  .monaco-editor .monaco-hover {
+    max-width: calc(100vw - 24px) !important;
   }
 }

@@ -19,7 +19,7 @@ export function TerminalPanel() {
 
   return (
     <section className="flex h-full min-h-0 flex-col bg-panel" aria-label="Терминал и логи">
-      <div className="flex h-8 shrink-0 items-center border-b border-border pr-2">
+      <div className="flex h-8 mobile:h-11 shrink-0 items-center border-b border-border pr-2">
         <div role="tablist" className="flex h-full items-stretch">
           {TABS.map((t) => (
             <button
@@ -28,7 +28,7 @@ export function TerminalPanel() {
               aria-selected={tab === t.id}
               onClick={() => set.setBottomTab(t.id)}
               className={cn(
-                "relative flex items-center gap-1.5 px-3 text-[11px] font-medium uppercase tracking-wide transition-colors",
+                "relative flex items-center gap-1.5 px-3 mobile:px-4 text-[11px] mobile:text-xs font-medium uppercase tracking-wide transition-colors",
                 tab === t.id ? "text-foreground" : "text-muted hover:text-subtle",
               )}
             >
@@ -46,16 +46,16 @@ export function TerminalPanel() {
             <button
               onClick={() => set.clearLogs()}
               aria-label="Очистить логи"
-              className="grid size-6 place-items-center rounded text-muted transition-colors hover:bg-hover hover:text-foreground"
+              className="grid size-6 mobile:size-9 place-items-center rounded text-muted transition-colors hover:bg-hover hover:text-foreground"
             >
               <Trash2 className="size-3.5" />
             </button>
           </Tip>
-          <Tip label="Закрыть панель">
+          <Tip label="Закрыть панель" >
             <button
               onClick={() => set.setBottomVisible(false)}
               aria-label="Закрыть панель"
-              className="grid size-6 place-items-center rounded text-muted transition-colors hover:bg-hover hover:text-foreground"
+              className="mobile:hidden grid size-6 mobile:size-9 place-items-center rounded text-muted transition-colors hover:bg-hover hover:text-foreground"
             >
               <X className="size-3.5" />
             </button>

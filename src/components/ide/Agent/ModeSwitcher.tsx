@@ -36,11 +36,11 @@ export function ModeSwitcher() {
             title={`${MODE_META[m.id].tagline} (Alt+${i + 1})`}
             onClick={() => useIdeStore.getState().setAgentMode(m.id)}
             className={cn(
-              "relative z-10 flex h-7 items-center justify-center gap-1.5 rounded-md text-xs font-medium transition-colors",
+              "relative z-10 flex h-7 mobile:h-10 items-center justify-center gap-1.5 rounded-md text-xs mobile:text-sm font-medium transition-colors",
               active ? "text-foreground" : "text-muted hover:text-subtle",
             )}
           >
-            <Icon className={cn("size-3.5 transition-colors", active && m.accent)} />
+            <Icon className={cn("size-3.5 mobile:size-4 transition-colors", active && m.accent)} />
             {MODE_META[m.id].label}
             {busy[m.id] && <span className="size-1.5 animate-pulse rounded-full bg-accent-soft" aria-label="выполняется" />}
           </button>

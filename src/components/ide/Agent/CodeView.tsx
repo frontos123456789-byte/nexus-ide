@@ -72,7 +72,7 @@ function ProposalRow({ runId, p }: { runId: string; p: ProposalView }) {
   const stats = useMemo(() => diffStats(p.original, p.content), [p.original, p.content]);
   const isNew = p.original === null;
   return (
-    <li className="flex items-center gap-2 rounded-lg border border-border bg-background px-2.5 py-2 animate-slide-up">
+    <li className="flex items-center gap-1 rounded-lg border border-border bg-background px-2.5 py-2 animate-slide-up">
       <FileIcon path={p.path} />
       <div className="min-w-0 flex-1">
         <div className="truncate text-xs text-foreground" title={p.path}>
@@ -93,7 +93,7 @@ function ProposalRow({ runId, p }: { runId: string; p: ProposalView }) {
         onClick={() => useIdeStore.getState().setDiffView({ runId, path: p.path })}
         aria-label={`Показать diff ${p.path}`}
         title="Открыть diff"
-        className="grid size-6 place-items-center rounded-md text-muted transition-colors hover:bg-hover hover:text-foreground"
+        className="grid size-6 mobile:size-9 place-items-center rounded-md text-muted transition-colors hover:bg-hover hover:text-foreground"
       >
         <Eye className="size-3.5" />
       </button>
@@ -103,7 +103,7 @@ function ProposalRow({ runId, p }: { runId: string; p: ProposalView }) {
             onClick={() => rejectProposal(runId, p.path)}
             aria-label={`Отклонить ${p.path}`}
             title="Отклонить"
-            className="grid size-6 place-items-center rounded-md text-muted transition-colors hover:bg-red-500/10 hover:text-red-400"
+            className="grid size-6 mobile:size-9 place-items-center rounded-md text-muted transition-colors hover:bg-red-500/10 hover:text-red-400"
           >
             <X className="size-3.5" />
           </button>
@@ -111,7 +111,7 @@ function ProposalRow({ runId, p }: { runId: string; p: ProposalView }) {
             onClick={() => void applyProposal(runId, p.path)}
             aria-label={`Применить ${p.path}`}
             title="Применить"
-            className="grid size-6 place-items-center rounded-md text-emerald-400 transition-colors hover:bg-emerald-500/15"
+            className="grid size-6 mobile:size-9 place-items-center rounded-md text-emerald-400 transition-colors hover:bg-emerald-500/15"
           >
             <Check className="size-3.5" />
           </button>
@@ -209,9 +209,9 @@ function RunView({ run }: { run: CodeRun }) {
       {waves.map((wave, wi) => (
         <div key={wi}>
           <Connector active={wave.some((a) => a.status === "running")} />
-          <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${Math.min(wave.length, 2)}, minmax(0, 1fr))` }}>
+          <div className="grid gap-2 max-[520px]:grid-cols-1!" style={{ gridTemplateColumns: `repeat(${Math.min(wave.length, 2)}, minmax(0, 1fr))` }}>
             {wave.map((a) => (
-              <SubAgentCard key={a.id} agent={a} className={wave.length % 2 === 1 && wave.length > 2 && a === wave[wave.length - 1] ? "col-span-2" : undefined} />
+              <SubAgentCard key={a.id} agent={a} className={wave.length % 2 === 1 && wave.length > 2 && a === wave[wave.length - 1] ? "col-span-2 max-[520px]:col-span-1" : undefined} />
             ))}
           </div>
           {wave.length > 1 && wave.some((a) => a.status === "running") && (
@@ -246,7 +246,7 @@ function RunView({ run }: { run: CodeRun }) {
             {pending > 1 && (
               <button
                 onClick={() => void applyAllProposals(run.id)}
-                className="flex items-center gap-1 rounded-md bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-300 transition-colors hover:bg-emerald-500/25"
+                className="flex items-center gap-1 rounded-md bg-emerald-500/15 px-2 py-0.5 mobile:py-1.5 text-[11px] font-medium text-emerald-300 transition-colors hover:bg-emerald-500/25"
               >
                 <CheckCheck className="size-3" /> Применить все ({pending})
               </button>
@@ -298,12 +298,12 @@ export function CodeView() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       {runs.length > 1 && (
-        <div className="flex h-8 shrink-0 items-center gap-2 border-b border-border px-3">
+        <div className="flex h-8 mobile:h-12 shrink-0 items-center gap-2 border-b border-border px-3">
           <select
             aria-label="История запусков"
             value={run.id}
             onChange={(e) => setSelected(e.target.value)}
-            className="h-6 min-w-0 flex-1 rounded border border-border-strong bg-background px-1.5 text-[11px] text-subtle outline-none focus:border-accent"
+            className="h-6 mobile:h-9 min-w-0 flex-1 rounded border border-border-strong bg-background px-1.5 text-[11px] text-subtle outline-none focus:border-accent"
           >
             {[...runs].reverse().map((r) => (
               <option key={r.id} value={r.id}>
@@ -315,7 +315,7 @@ export function CodeView() {
             onClick={() => useAgentStore.getState().clearRuns()}
             aria-label="Очистить историю запусков"
             title="Очистить историю"
-            className="grid size-6 place-items-center rounded text-muted transition-colors hover:bg-hover hover:text-red-400"
+            className="grid size-6 mobile:size-9 place-items-center rounded text-muted transition-colors hover:bg-hover hover:text-red-400"
           >
             <Trash2 className="size-3.5" />
           </button>

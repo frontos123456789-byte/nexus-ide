@@ -10,6 +10,7 @@ import { useIdeStore } from "@/lib/store/ide";
 import { diffStats } from "@/lib/utils/diff";
 import { languageFromPath } from "@/lib/utils/path";
 import { cn } from "@/lib/utils/cn";
+import { useIsMobile } from "@/lib/utils/use-mobile";
 import { FileIcon } from "../FileTree/FileIcon";
 import { EditorSkeleton } from "./EditorSkeleton";
 import { configureLanguages, configureMonacoLoader, defineNexusTheme, NEXUS_THEME } from "./monaco-setup";
@@ -19,6 +20,7 @@ configureMonacoLoader();
 export function DiffViewer({ runId, path }: { runId: string; path: string }) {
   const proposal = useAgentStore((s) => s.runs.find((r) => r.id === runId)?.proposals.find((p) => p.path === path));
   const [split, setSplit] = useState(true);
+  const isMobile = useIsMobile();
 
   const beforeMount: BeforeMount = (monaco) => {
     defineNexusTheme(monaco);
@@ -38,9 +40,9 @@ export function DiffViewer({ runId, path }: { runId: string; path: string }) {
 
   return (
     <div className="flex h-full flex-col animate-fade-in">
-      <div className="flex h-10 shrink-0 items-center gap-3 border-b border-border bg-panel px-3">
+      <div className="flex h-10 mobile:h-auto mobile:flex-wrap mobile:gap-x-2 mobile:gap-y-2 mobile:py-2 shrink-0 items-center gap-3 border-b border-border bg-panel px-3">
         <FileIcon path={proposal.path} />
-        <span className="truncate text-xs font-medium text-foreground">{proposal.path}</span>
+        <span className="truncate text-xs font-medium text-foreground mobile:min-w-0 mobile:flex-1">{proposal.path}</span>
         <span
           className={cn(
             "rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
@@ -55,8 +57,8 @@ export function DiffViewer({ runId, path }: { runId: string; path: string }) {
         {proposal.status !== "pending" && (
           <span className="text-[11px] text-muted">{proposal.status === "applied" ? "· применено" : "· отклонено"}</span>
         )}
-        <div className="ml-auto flex items-center gap-1.5">
-          <Button variant="ghost" size="icon" onClick={() => setSplit((v) => !v)} aria-label="Переключить вид diff" title="Переключить вид">
+        <div className="ml-auto flex items-center gap-1.5 mobile:w-full mobile:justify-end">
+          <Button variant="ghost" size="icon" className="mobile:hidden" onClick={() => setSplit((v) => !v)} aria-label="Переключить вид diff" title="Переключить вид">
             {split ? <Rows2 className="size-3.5" /> : <Columns2 className="size-3.5" />}
           </Button>
           {proposal.status === "pending" && (
@@ -90,9 +92,9 @@ export function DiffViewer({ runId, path }: { runId: string; path: string }) {
           options={{
             readOnly: true,
             originalEditable: false,
-            renderSideBySide: split,
+            renderSideBySide: split && !isMobile,
             automaticLayout: true,
-            fontSize: 13,
+            fontSize: isMobile ? 14 : 13,
             minimap: { enabled: false },
             scrollBeyondLastLine: false,
             padding: { top: 10 },

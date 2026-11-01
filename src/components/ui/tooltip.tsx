@@ -3,6 +3,7 @@
 import * as React from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { cn } from "@/lib/utils/cn";
+import { useIsMobile } from "@/lib/utils/use-mobile";
 
 export function TooltipProvider({ children }: { children: React.ReactNode }) {
   return (
@@ -21,6 +22,9 @@ interface TipProps {
 
 /** Convenience wrapper: <Tip label="Save" shortcut="⌘S"><button/></Tip> */
 export function Tip({ label, shortcut, side = "bottom", children }: TipProps) {
+  // Hover tooltips are meaningless (and sticky) on touch screens.
+  const isMobile = useIsMobile();
+  if (isMobile) return <>{children}</>;
   return (
     <TooltipPrimitive.Root>
       <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
