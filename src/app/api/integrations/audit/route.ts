@@ -1,4 +1,6 @@
 import { readSession, recentAudit, tokenFor } from "@/lib/integrations/server";
+import { getSession } from "@/lib/auth/session";
+import { listAudit } from "@/lib/auth/service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,6 +23,11 @@ export async function GET(req: Request): Promise<Response> {
       }),
     );
   }
-  const events = await recentAudit((e) => (e.source === "nexus" ? logins.has(e.actor) : allowed.has(e.target)));
+  const ctx = await getSession(req).catch(() => null);
+  const mine = ctx ? await listAudit(ctx.user.id, 60).catch(() => []) : [];
+  const own = mine.map((m) => ({ id: m.id, ts: m.createdAt.getTime(), actor: m.actor, action: m.action, target: m.target, ok: m.ok, detail: m.detail ?? undefined, source: "nexus" as const }));
+  const legacy = await recentAudit((e) => (e.source === "nexus" ? logins.has(e.actor) : allowed.has(e.target)));
+  const seen = new Set(own.map((e) => `${e.ts}:${e.action}:${e.target}`));
+  const events = [...own, ...legacy.filter((e) => !seen.has(`${e.ts}:${e.action}:${e.target}`))].sort((a, b) => b.ts - a.ts).slice(0, 60);
   return Response.json({ events, webhookConfigured: Boolean(process.env.GITHUB_WEBHOOK_SECRET?.trim()), persistent: Boolean(process.env.DATABASE_URL) });
 }

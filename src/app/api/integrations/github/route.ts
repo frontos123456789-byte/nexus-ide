@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { rateLimit } from "@/lib/nexus/server/guard";
-import { ApiError, audit, csrfCheck, readSession, requireConfirm, tokenFor } from "@/lib/integrations/server";
+import { ApiError, audit, csrfCheck, requireConfirm } from "@/lib/integrations/server";
+import { assertRepoAllowed, githubCredentials, type GithubCred } from "@/lib/auth/credentials";
+import { installationToken, listInstallationRepos } from "@/lib/auth/providers/github";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,7 +49,7 @@ const repoName = z.string().regex(/^[\w.-]+\/[\w.-]+$/, "Формат owner/name
 const base = z.object({ confirm: z.boolean().optional() });
 
 const actions = {
-  repos: z.object({ page: z.number().int().min(1).max(20).optional() }),
+  repos: z.object({ page: z.number().int().min(1).max(20).optional(), all: z.boolean().optional() }),
   createRepo: z.object({ name: z.string().regex(/^[\w.-]{1,100}$/), description: z.string().max(300).optional(), private: z.boolean().default(true) }),
   contents: z.object({ repo: repoName, path: z.string().max(400).default(""), ref: z.string().max(200).optional() }),
   branches: z.object({ repo: repoName }),
@@ -108,16 +110,41 @@ async function commitFiles(token: string, a: z.infer<typeof actions.commitFiles>
   return { sha: commit.sha, url: commit.html_url, files: files.length + (a.deletes?.length ?? 0) };
 }
 
-async function run(token: string, action: Action, p: Record<string, unknown>, raw: { confirm?: unknown }) {
+async function run(cred: GithubCred, action: Action, p: Record<string, unknown>, raw: { confirm?: unknown }) {
+  const token = cred.token;
+  if (cred.via === "account" && typeof p.repo === "string") assertRepoAllowed(cred, p.repo);
   switch (action) {
     case "repos": {
       const a = actions.repos.parse(p);
+      if (cred.via === "account") {
+        // Account connection: only repositories of the GitHub App installation (narrowed by the user's Nexus allow-list).
+        // `all` = unrestricted installation view (used by the access-management UI to let the user widen the selection).
+        const list = await listInstallationRepos(a.all && cred.installationId ? await installationToken(cred.installationId) : token);
+        return list.map((r) => ({ full_name: r.full_name, private: r.private, default_branch: r.default_branch, updated_at: r.updated_at, html_url: r.html_url, description: r.description, permissions: r.permissions, id: r.id }));
+      }
       const list = await gh<Record<string, unknown>[]>(token, `/user/repos?sort=updated&per_page=50&page=${a.page ?? 1}&affiliation=owner,collaborator,organization_member`);
       return list.map((r) => ({ full_name: r.full_name, private: r.private, default_branch: r.default_branch, updated_at: r.updated_at, html_url: r.html_url, description: r.description, permissions: r.permissions, id: r.id }));
     }
     case "createRepo": {
       const a = actions.createRepo.parse(p);
       requireConfirm(raw, `создать ${a.private ? "приватный" : "ПУБЛИЧНЫЙ"} репозиторий ${a.name}`);
+      if (cred.via === "account") {
+        // GitHub does not let installation tokens create repositories in PERSONAL accounts; organizations are allowed
+        // (needs the "Administration: write" app permission). Personal accounts use the user-to-server token.
+        const body = { name: a.name, description: a.description, private: a.private, auto_init: false };
+        if (cred.accountType === "Organization" && cred.accountLogin) {
+          const r = await gh<{ full_name: string; html_url: string; default_branch: string }>(token, `/orgs/${cred.accountLogin}/repos`, { method: "POST", body });
+          return r;
+        }
+        const ut = await cred.userToken();
+        if (!ut) throw new ApiError("Для создания репозитория в личном аккаунте нужна авторизация GitHub — войдите через GitHub заново.", 401, "reauth_required");
+        try {
+          return await gh<{ full_name: string; html_url: string; default_branch: string }>(ut, "/user/repos", { method: "POST", body });
+        } catch (e) {
+          if (e instanceof ApiError && (e.status === 403 || e.status === 404)) throw new ApiError("GitHub запрещает приложению создавать репозитории в личном аккаунте. Создайте пустой репозиторий на github.com/new и добавьте его в доступ GitHub App («Управление доступом»).", 403, "forbidden", { newRepoUrl: "https://github.com/new" });
+          throw e;
+        }
+      }
       const r = await gh<{ full_name: string; html_url: string; default_branch: string }>(token, "/user/repos", { method: "POST", body: { name: a.name, description: a.description, private: a.private, auto_init: false } });
       return r;
     }
@@ -228,17 +255,24 @@ export async function POST(req: Request): Promise<Response> {
   const body = (await req.json().catch(() => null)) as ({ action?: string } & Record<string, unknown>) | null;
   const action = body?.action as Action | undefined;
   if (!body || !action || !(action in actions)) return Response.json({ error: "Неизвестное действие" }, { status: 400 });
-  const token = tokenFor(req, "github");
-  if (!token) return Response.json({ error: "GitHub не подключён", code: "not_connected" }, { status: 401 });
-  const actor = readSession(req).logins?.github ?? "owner";
+  let cred: GithubCred | null;
+  try {
+    cred = await githubCredentials(req);
+  } catch (e) {
+    if (e instanceof ApiError) return e.toResponse();
+    return Response.json({ error: "Внутренняя ошибка интеграции GitHub" }, { status: 500 });
+  }
+  if (!cred) return Response.json({ error: "GitHub не подключён", code: "not_connected" }, { status: 401 });
+  const actor = cred.actor;
+  const userId = cred.userId;
   const parsedBase = base.safeParse(body);
   try {
-    const data = await run(token, action, body, { confirm: parsedBase.success ? parsedBase.data.confirm : undefined });
-    if (!READ.has(action)) await audit({ actor, action: `github:${action}`, target: String(body.repo ?? body.name ?? ""), ok: true });
+    const data = await run(cred, action, body, { confirm: parsedBase.success ? parsedBase.data.confirm : undefined });
+    if (!READ.has(action)) await audit({ actor, userId, action: `github:${action}`, target: String(body.repo ?? body.name ?? ""), ok: true });
     return Response.json({ data });
   } catch (e) {
     if (!READ.has(action) && !(e instanceof ApiError && e.code === "confirm_required")) {
-      await audit({ actor, action: `github:${action}`, target: String(body.repo ?? body.name ?? ""), ok: false, detail: e instanceof Error ? e.message : undefined });
+      await audit({ actor, userId, action: `github:${action}`, target: String(body.repo ?? body.name ?? ""), ok: false, detail: e instanceof Error ? e.message : undefined });
     }
     if (e instanceof ApiError) return e.toResponse();
     if (e instanceof z.ZodError) return Response.json({ error: `Некорректные параметры: ${e.issues[0]?.message ?? ""}` }, { status: 400 });

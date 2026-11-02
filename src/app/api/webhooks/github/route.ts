@@ -1,4 +1,6 @@
 import { audit, verifyHmacSha256 } from "@/lib/integrations/server";
+import { databaseConfigured, githubConfig } from "@/lib/auth/config";
+import { revokeByExternal, writeAudit } from "@/lib/auth/service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,8 +11,8 @@ export const dynamic = "force-dynamic";
  * Events end up in the Nexus audit journal and are shown in the Agent Activity Monitor.
  */
 export async function POST(req: Request): Promise<Response> {
-  const secret = process.env.GITHUB_WEBHOOK_SECRET?.trim();
-  if (!secret) return Response.json({ error: "GITHUB_WEBHOOK_SECRET не настроен" }, { status: 503 });
+  const secret = githubConfig().webhookSecret;
+  if (!secret) return Response.json({ error: "GITHUB_WEBHOOK_SECRET (или GITHUB_APP_WEBHOOK_SECRET) не настроен" }, { status: 503 });
   const raw = await req.text();
   if (raw.length > 2_000_000) return Response.json({ error: "Слишком большой payload" }, { status: 413 });
   if (!verifyHmacSha256(secret, raw, req.headers.get("x-hub-signature-256"))) return Response.json({ error: "Неверная подпись" }, { status: 401 });
@@ -20,6 +22,19 @@ export async function POST(req: Request): Promise<Response> {
     p = JSON.parse(raw) as Record<string, unknown>;
   } catch {
     return Response.json({ error: "Некорректный JSON" }, { status: 400 });
+  }
+  // GitHub App lifecycle: the user removed/suspended the installation on GitHub → drop the Nexus connection immediately.
+  if (event === "installation") {
+    const inst = p.installation as { id?: number } | undefined;
+    if (inst?.id && (p.action === "deleted" || p.action === "suspend") && databaseConfigured()) {
+      const n = await revokeByExternal("github", String(inst.id)).catch(() => 0);
+      await writeAudit({ provider: "github", actor: (p.sender as { login?: string } | undefined)?.login ?? "github", action: `webhook:installation_${String(p.action)}`, target: String(inst.id), detail: `${n} connection(s) revoked`, source: "github-webhook" });
+    }
+    return Response.json({ ok: true });
+  }
+  if (event === "github_app_authorization" && p.action === "revoked") {
+    await audit({ source: "github-webhook", actor: (p.sender as { login?: string } | undefined)?.login ?? "github", action: "webhook:github_app_authorization", target: "oauth", ok: true, detail: "user revoked authorization" });
+    return Response.json({ ok: true });
   }
   const repo = (p.repository as { full_name?: string } | undefined)?.full_name ?? "?";
   const sender = (p.sender as { login?: string } | undefined)?.login ?? "github";
@@ -35,5 +50,5 @@ export async function POST(req: Request): Promise<Response> {
 }
 
 export async function GET(): Promise<Response> {
-  return Response.json({ configured: Boolean(process.env.GITHUB_WEBHOOK_SECRET?.trim()) });
+  return Response.json({ configured: Boolean(githubConfig().webhookSecret) });
 }

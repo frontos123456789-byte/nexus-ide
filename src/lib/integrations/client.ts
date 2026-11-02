@@ -25,6 +25,8 @@ export interface ConnState {
   vercel: { connected: boolean; login?: string; teamId?: string; via?: string | null };
   telegram: { connected: boolean; login?: string; via?: string | null };
   owner: boolean;
+  signedIn?: boolean;
+  legacy?: { github: boolean; vercel: boolean };
 }
 
 export async function fetchConnections(): Promise<ConnState | null> {

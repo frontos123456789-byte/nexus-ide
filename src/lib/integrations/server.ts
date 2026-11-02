@@ -167,7 +167,12 @@ async function pgQuery(sql: string, params: unknown[] = []): Promise<{ rows: Rec
   }
 }
 
-export async function audit(e: Omit<AuditEvent, "id" | "ts" | "source"> & { source?: AuditEvent["source"]; ts?: number }): Promise<void> {
+export async function audit(e: Omit<AuditEvent, "id" | "ts" | "source"> & { source?: AuditEvent["source"]; ts?: number; userId?: string }): Promise<void> {
+  if (e.userId) {
+    // Account-bound operations are also stored per user in integration_audit_logs (never throws).
+    const { writeAudit } = await import("@/lib/auth/service");
+    await writeAudit({ userId: e.userId, provider: e.action.split(":")[0] ?? "nexus", actor: e.actor, action: e.action, target: e.target, ok: e.ok, detail: e.detail });
+  }
   const ev: AuditEvent = { id: randomBytes(8).toString("hex"), ts: e.ts ?? Date.now(), source: e.source ?? "nexus", actor: e.actor, action: e.action, target: e.target, ok: e.ok, detail: e.detail?.slice(0, 500) };
   const r = ring();
   r.push(ev);

@@ -2,6 +2,8 @@ import { z } from "zod";
 import { rateLimit } from "@/lib/nexus/server/guard";
 import { audit, csrfCheck, isOwner, readSession, sessionCookie, type SessionData } from "@/lib/integrations/server";
 import { envToken } from "@/lib/nexus/server/guard";
+import { getSession } from "@/lib/auth/session";
+import { getConnection } from "@/lib/auth/service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,15 +37,19 @@ async function validate(provider: "github" | "vercel" | "telegram", token: strin
   }
 }
 
-/** Connection status. Never returns tokens — only whether a provider is connected and the login. */
+/** Connection status. Never returns tokens. Account connections (GitHub App / Vercel Integration) win over legacy manual tokens. */
 export async function GET(req: Request): Promise<Response> {
   const s = readSession(req);
   const owner = isOwner(req);
+  const ctx = await getSession(req).catch(() => null);
+  const [ghc, vcc] = ctx ? await Promise.all([getConnection(ctx.user.id, "github").catch(() => null), getConnection(ctx.user.id, "vercel").catch(() => null)]) : [null, null];
   return Response.json({
-    github: { connected: Boolean(s.github) || (owner && Boolean(envToken("github"))), login: s.logins?.github, via: s.github ? "user-token" : owner ? "owner-env" : null },
-    vercel: { connected: Boolean(s.vercel) || (owner && Boolean(envToken("vercel"))), login: s.logins?.vercel, teamId: s.teamId, via: s.vercel ? "user-token" : owner ? "owner-env" : null },
+    github: { connected: Boolean(ghc) || Boolean(s.github) || (owner && Boolean(envToken("github"))), login: ghc?.externalLogin ?? s.logins?.github, via: ghc ? "account" : s.github ? "user-token" : owner ? "owner-env" : null },
+    vercel: { connected: Boolean(vcc) || Boolean(s.vercel) || (owner && Boolean(envToken("vercel"))), login: vcc?.externalLogin ?? s.logins?.vercel, teamId: vcc?.teamId ?? s.teamId, via: vcc ? "account" : s.vercel ? "user-token" : owner ? "owner-env" : null },
     telegram: { connected: Boolean(s.telegram) || (owner && Boolean(process.env.TELEGRAM_BOT_TOKEN)), login: s.logins?.telegram, via: s.telegram ? "user-token" : owner && process.env.TELEGRAM_BOT_TOKEN ? "owner-env" : null },
     owner,
+    signedIn: Boolean(ctx),
+    legacy: { github: Boolean(s.github), vercel: Boolean(s.vercel) },
   });
 }
 

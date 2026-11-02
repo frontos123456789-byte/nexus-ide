@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { rateLimit } from "@/lib/nexus/server/guard";
-import { ApiError, audit, csrfCheck, readSession, requireConfirm, tokenFor } from "@/lib/integrations/server";
+import { ApiError, audit, csrfCheck, requireConfirm } from "@/lib/integrations/server";
+import { assertEnvKeyAllowed, vercelCredentials, type VercelCred } from "@/lib/auth/credentials";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -40,6 +41,7 @@ const targets = z.array(z.enum(["production", "preview", "development"])).min(1)
 
 const actions = {
   projects: z.object({}),
+  teams: z.object({}),
   deployments: z.object({ projectId: id, limit: z.number().int().min(1).max(30).default(12), target: z.enum(["production", "preview"]).optional() }),
   deployment: z.object({ deploymentId: id }),
   logs: z.object({ deploymentId: id }),
@@ -55,8 +57,17 @@ const actions = {
 type Action = keyof typeof actions;
 type Obj = Record<string, unknown>;
 
-async function run(token: string, team: string | undefined, action: Action, p: Obj, raw: { confirm?: unknown }) {
+async function run(cred: VercelCred, action: Action, p: Obj, raw: { confirm?: unknown }) {
+  const token = cred.token;
+  const team = cred.teamId;
   switch (action) {
+    case "teams": {
+      // Teams / account visible to this authorization (an integration is installed on exactly one team or personal account).
+      const r = await vc<{ teams?: Obj[] }>(token, undefined, "/v2/teams?limit=20").catch(() => ({ teams: [] as Obj[] }));
+      const list = (r.teams ?? []).map((t) => ({ id: t.id, slug: t.slug, name: t.name, current: t.id === team }));
+      if (list.length === 0) list.push({ id: team ?? null, slug: null, name: team ? `Команда ${team}` : "Личный аккаунт", current: true });
+      return list;
+    }
     case "projects": {
       const r = await vc<{ projects: Obj[] }>(token, team, "/v9/projects?limit=60");
       return r.projects.map((x) => {
@@ -130,12 +141,17 @@ async function run(token: string, team: string | undefined, action: Action, p: O
     }
     case "envAdd": {
       const a = actions.envAdd.parse(p);
+      assertEnvKeyAllowed(cred, a.key);
       requireConfirm(raw, `добавить переменную ${a.key} (${a.target.join(", ")})`);
       const r = await vc<Obj>(token, team, `/v10/projects/${a.projectId}/env?upsert=true`, { method: "POST", body: { key: a.key, value: a.value, target: a.target, type: a.type } });
       return { ok: true, created: Boolean(r.created) };
     }
     case "envDelete": {
       const a = actions.envDelete.parse(p);
+      const list = await vc<{ envs: Obj[] }>(token, team, `/v10/projects/${a.projectId}/env`);
+      const found = list.envs.find((e) => e.id === a.envId);
+      if (!found) throw new ApiError("Переменная не найдена в этом проекте", 404, "not_found");
+      assertEnvKeyAllowed(cred, String(found.key));
       requireConfirm(raw, "УДАЛИТЬ переменную окружения");
       await vc(token, team, `/v9/projects/${a.projectId}/env/${a.envId}`, { method: "DELETE" });
       return { deleted: a.envId };
@@ -143,7 +159,7 @@ async function run(token: string, team: string | undefined, action: Action, p: O
   }
 }
 
-const READ = new Set<Action>(["projects", "deployments", "deployment", "logs", "env"]);
+const READ = new Set<Action>(["teams", "projects", "deployments", "deployment", "logs", "env"]);
 
 export async function POST(req: Request): Promise<Response> {
   const csrf = csrfCheck(req);
@@ -153,18 +169,24 @@ export async function POST(req: Request): Promise<Response> {
   const body = (await req.json().catch(() => null)) as ({ action?: string; confirm?: unknown } & Obj) | null;
   const action = body?.action as Action | undefined;
   if (!body || !action || !(action in actions)) return Response.json({ error: "Неизвестное действие" }, { status: 400 });
-  const token = tokenFor(req, "vercel");
-  if (!token) return Response.json({ error: "Vercel не подключён", code: "not_connected" }, { status: 401 });
-  const session = readSession(req);
-  const actor = session.logins?.vercel ?? "owner";
+  let cred: VercelCred | null;
+  try {
+    cred = await vercelCredentials(req);
+  } catch (e) {
+    if (e instanceof ApiError) return e.toResponse();
+    return Response.json({ error: "Внутренняя ошибка интеграции Vercel" }, { status: 500 });
+  }
+  if (!cred) return Response.json({ error: "Vercel не подключён", code: "not_connected" }, { status: 401 });
+  const actor = cred.actor;
+  const userId = cred.userId;
   const target = String(body.projectId ?? body.deploymentId ?? body.name ?? "");
   try {
-    const data = await run(token, session.teamId, action, body, { confirm: body.confirm });
-    if (!READ.has(action)) await audit({ actor, action: `vercel:${action}`, target, ok: true, detail: body.target ? `target=${String(body.target)}` : undefined });
+    const data = await run(cred, action, body, { confirm: body.confirm });
+    if (!READ.has(action)) await audit({ actor, userId, action: `vercel:${action}`, target, ok: true, detail: body.target ? `target=${String(body.target)}` : undefined });
     return Response.json({ data });
   } catch (e) {
     if (!READ.has(action) && !(e instanceof ApiError && e.code === "confirm_required")) {
-      await audit({ actor, action: `vercel:${action}`, target, ok: false, detail: e instanceof Error ? e.message : undefined });
+      await audit({ actor, userId, action: `vercel:${action}`, target, ok: false, detail: e instanceof Error ? e.message : undefined });
     }
     if (e instanceof ApiError) return e.toResponse();
     if (e instanceof z.ZodError) return Response.json({ error: `Некорректные параметры: ${e.issues[0]?.message ?? ""}` }, { status: 400 });

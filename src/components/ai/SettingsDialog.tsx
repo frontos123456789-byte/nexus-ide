@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import * as Dialog from "@radix-ui/react-dialog";
-import { Code2, Globe, X } from "lucide-react";
+import { Code2, Globe, UserRound, X } from "lucide-react";
+import { AccountSection } from "@/components/account/AccountSection";
 import { Switch } from "@/components/ui/switch";
 import { useSettings, type SearchMode } from "@/lib/settings/store";
 import { cn } from "@/lib/utils/cn";
@@ -44,6 +45,11 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
             </Dialog.Close>
           </div>
           <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-4">
+            <section aria-label="Аккаунт и подключения">
+              <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold"><UserRound className="size-4 text-accent-soft" />Аккаунт и подключения</h3>
+              {open && <AccountSection />}
+            </section>
+
             <section>
               <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold"><Globe className="size-4 text-accent-soft" />Интернет-поиск</h3>
               <div className="grid gap-2 sm:grid-cols-3">

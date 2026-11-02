@@ -223,6 +223,8 @@ export function NexusAI() {
   useEffect(() => {
     useSettings.getState().hydrate();
     void useChats.getState().init();
+    // Returning from an OAuth / installation round-trip: open "Аккаунт и подключения" so the result is visible.
+    if (new URLSearchParams(window.location.search).get("settings") === "account") setSettingsOpen(true);
   }, []);
 
   const sidebar = (

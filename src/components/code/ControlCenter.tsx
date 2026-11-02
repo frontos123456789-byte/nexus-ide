@@ -7,6 +7,7 @@ import { callIntegration, connectProvider, disconnectProvider, fetchConnections,
 import { useNexus } from "@/lib/nexus/store";
 import { getDb, type ActivityRecord, type ProjectRecord } from "@/lib/db/schema";
 import { logActivity, projectFiles, updateProject } from "@/lib/studio/projects";
+import { AccountSection } from "@/components/account/AccountSection";
 import { Btn, Card, Field, inputCls, Notice, Pill } from "./ui";
 
 type Obj = Record<string, unknown>;
@@ -442,13 +443,25 @@ export function ActivityMonitor({ projects }: { projects: ProjectRecord[] }) {
 export function ControlCenter({ projects, onChange }: { projects: ProjectRecord[]; onChange: () => void }) {
   const { c, refresh } = useConn();
   const [tab, setTab] = useState<"connect" | "github" | "vercel" | "monitor">("connect");
+  // Connections may change on the "Подключение" tab (OAuth popup, disconnect) – re-read them when the user leaves it.
+  useEffect(() => { refresh(); }, [tab, refresh]);
   void onChange;
   const tabs = [["connect", "Подключение"], ["github", "GitHub"], ["vercel", "Vercel"], ["monitor", "Монитор"]] as const;
   return (
     <div className="space-y-4">
       <div><h1 className="text-xl font-semibold">GitHub & Vercel Control Center</h1><p className="text-sm text-muted">Все операции выполняются через реальные API; опасные действия требуют подтверждения и записываются в аудит.</p></div>
       <div className="flex gap-1 overflow-x-auto rounded-xl border border-border bg-panel-2 p-1">{tabs.map(([id, l]) => <button key={id} onClick={() => setTab(id)} className={`min-h-10 flex-1 shrink-0 rounded-lg px-3 text-sm font-medium ${tab === id ? "bg-accent text-white" : "text-subtle"}`}>{l}</button>)}</div>
-      {tab === "connect" && <div className="grid gap-3 md:grid-cols-2"><Connect provider="github" state={c?.github} refresh={refresh} /><Connect provider="vercel" state={c?.vercel} refresh={refresh} /></div>}
+      {tab === "connect" && (
+        <div className="space-y-4">
+          <AccountSection />
+          {(
+            <details className="rounded-2xl border border-border bg-panel-2/50 p-3">
+              <summary className="min-h-10 cursor-pointer text-xs text-muted">Устаревший способ: токены вручную (будет удалён после проверки авторизации на реальных аккаунтах)</summary>
+              <div className="mt-3 grid gap-3 md:grid-cols-2"><Connect provider="github" state={c?.github} refresh={refresh} /><Connect provider="vercel" state={c?.vercel} refresh={refresh} /></div>
+            </details>
+          )}
+        </div>
+      )}
       {tab === "github" && (c?.github.connected ? <GitHubPanel /> : <Notice tone="warn">Сначала подключите GitHub на вкладке «Подключение».</Notice>)}
       {tab === "vercel" && (c?.vercel.connected ? <VercelPanel /> : <Notice tone="warn">Сначала подключите Vercel на вкладке «Подключение».</Notice>)}
       {tab === "monitor" && <ActivityMonitor projects={projects} />}

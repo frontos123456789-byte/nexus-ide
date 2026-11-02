@@ -112,3 +112,15 @@ src/components/ide/{Layout,Editor,Agent,FileTree,Terminal}
 
 Open with **Ctrl/Cmd+Shift+X**, the ✦ button in the activity bar, or the command palette. Five workspaces: AI Agents, Code Intelligence, Visual Studio, DevTools, Nexus Control. Status of every feature and its limits: [`docs/FEATURE_STATUS.md`](docs/FEATURE_STATUS.md); audit and design: [`docs/NEXUS_EXPANSION_PLAN.md`](docs/NEXUS_EXPANSION_PLAN.md).
 Server-side variables are listed in `.env.example`. Privileged routes need `NEXUS_ADMIN_KEY` in production.
+
+
+## Accounts, GitHub & Vercel authorization
+
+Nexus has real user accounts (PostgreSQL: `users`, `accounts`, `sessions`, `connected_providers`, `provider_permissions`,
+`integration_audit_logs`). Sign in with **GitHub** or **Vercel** at `/login`; connect GitHub (GitHub App, per-repository access)
+and Vercel (Vercel Integration) in **Settings → Аккаунт и подключения** or in the Control Center. No personal tokens are required.
+Guest mode (no account) keeps working for chat / studios. The old manual-token form is kept under "Устаревший способ" until the
+new flows are verified on real accounts.
+
+* Setup guide (what the owner must register at GitHub/Vercel, callback URLs, env vars): [`docs/OAUTH_SETUP.md`](docs/OAUTH_SETUP.md)
+* Tests: `npm test` (unit + end-to-end account flow against PostgreSQL with stubbed providers)
