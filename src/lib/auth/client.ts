@@ -40,7 +40,7 @@ export const unlinkIdentity = (provider: "github" | "vercel") => call<{ ok: true
 export const disconnect = (provider: "github" | "vercel", uninstall = false) => call<{ ok: true; warnings?: string[] }>(`/api/integrations/connections?provider=${provider}&confirm=1&uninstall=${uninstall ? 1 : 0}`, { method: "DELETE" });
 export const manage = (body: Record<string, unknown>) => call<AccountView>("/api/integrations/connections", { method: "POST", body: JSON.stringify(body) });
 
-const PROVIDER_NAME: Record<string, string> = { github: "GitHub", vercel: "Vercel" };
+const PROVIDER_NAME: Record<string, string> = { github: "GitHub", vercel: "Vercel", vercel_monitor: "Vercel" };
 
 const MESSAGES: Record<string, (p: string) => string> = {
   cancelled: (p) => `Вы отменили авторизацию в ${p} — ничего не изменилось.`,
@@ -48,6 +48,7 @@ const MESSAGES: Record<string, (p: string) => string> = {
   not_configured: (p) => `Вход через ${p} ещё не настроен владельцем Nexus (см. docs/OAUTH_SETUP.md).`,
   app_not_configured: () => "GitHub App ещё не настроена владельцем Nexus (см. docs/OAUTH_SETUP.md).",
   integration_not_configured: () => "Vercel Integration ещё не настроена владельцем Nexus (см. docs/OAUTH_SETUP.md).",
+  monitor_not_configured: () => "Интеграция Vercel Monitor ещё не зарегистрирована владельцем Nexus (см. docs/VERCEL_MONITOR_SETUP.md).",
   database_not_configured: () => "На сервере не настроена база данных — аккаунты недоступны.",
   encryption_not_configured: () => "На сервере не задан NEXUS_ENCRYPTION_KEY — токены нельзя хранить безопасно.",
   session_required: () => "Сначала войдите в Nexus.",

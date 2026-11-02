@@ -124,3 +124,16 @@ new flows are verified on real accounts.
 
 * Setup guide (what the owner must register at GitHub/Vercel, callback URLs, env vars): [`docs/OAUTH_SETUP.md`](docs/OAUTH_SETUP.md)
 * Tests: `npm test` (unit + end-to-end account flow against PostgreSQL with stubbed providers)
+
+
+## Vercel Monitor (Code Studio → «Vercel»)
+
+Мобильная и десктопная панель мониторинга деплоев Vercel: проекты аккаунта, реальные Production/Preview деплои, статусы
+Queued / Building / Ready / Error / Canceled, история, ветка GitHub, коммит, ссылки и просмотр логов, фильтры по проекту/статусу/окружению,
+автообновление + ручное обновление, уведомления о неудачных деплоях.
+
+* Подключение — **официальный Vercel Integration flow** (кнопка «Подключить Vercel»), без ручного ввода токена, **только Read**
+  (Projects: Read, Deployments: Read). Токен хранится зашифрованным (AES-256-GCM) в `connected_providers` (`provider = vercel_monitor`).
+* Монитор делает только `GET`-запросы (`src/lib/monitor/vercel-readonly.ts`) и не умеет создавать/менять/удалять проекты и деплои.
+* Нужна одноразовая ручная регистрация интеграции владельцем — **docs/VERCEL_MONITOR_SETUP.md**.
+* Тесты: `npm test` (`src/lib/monitor/*.test.ts`; flow-тест использует реальный PostgreSQL и заглушку Vercel API).

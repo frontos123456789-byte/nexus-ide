@@ -52,6 +52,17 @@ export function vercelConfig() {
   };
 }
 
+/**
+ * Vercel Monitor uses its OWN Vercel Integration (separate from the one used by the Control Center), registered with
+ * read-only API scopes only (Projects: Read, Deployments: Read). That is what makes the token read-only on Vercel's side.
+ */
+export function vercelMonitorConfig() {
+  const id = env("VERCEL_MONITOR_CLIENT_ID");
+  const secret = env("VERCEL_MONITOR_CLIENT_SECRET");
+  const slug = env("VERCEL_MONITOR_SLUG");
+  return { configured: Boolean(id && secret && slug), clientId: id, clientSecret: secret, slug };
+}
+
 export function databaseConfigured(): boolean {
   return Boolean(env("DATABASE_URL"));
 }

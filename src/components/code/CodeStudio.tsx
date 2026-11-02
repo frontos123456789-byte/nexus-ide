@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Bot, FolderGit2, Globe2, Home, Layers, Presentation, Rocket, SquareTerminal, Trash2, Wrench, ExternalLink, FileCode2 } from "lucide-react";
+import { Activity, ArrowLeft, Bot, FolderGit2, Globe2, Home, Layers, Presentation, Rocket, SquareTerminal, Trash2, Wrench, ExternalLink, FileCode2 } from "lucide-react";
 
 import { NexusRoot } from "@/components/nexus/NexusRoot";
 import { TOOLS, WORKSPACES } from "@/components/nexus/registry";
@@ -14,20 +14,22 @@ import { useIsMobile, useVisualViewportVars } from "@/lib/utils/use-mobile";
 import { cn } from "@/lib/utils/cn";
 import { ActivityMonitor, ControlCenter, ProjectDashboard } from "./ControlCenter";
 import { DevGate } from "./DevGate";
+import { VercelMonitor } from "@/components/monitor/VercelMonitor";
 import { PresentationStudio } from "./PresentationStudio";
 import { TelegramStudio } from "./TelegramStudio";
 import { WebsiteStudio } from "./WebsiteStudio";
 import { Btn, Card, Pill } from "./ui";
 
-type View = "home" | "projects" | "agents" | "tools" | "control";
+type View = "home" | "projects" | "agents" | "tools" | "control" | "vercel";
 type StudioId = "telegram" | "website" | "presentation";
 
-const NAV: { id: View; label: string; icon: typeof Home }[] = [
+const NAV: { id: View; label: string; short?: string; icon: typeof Home }[] = [
   { id: "home", label: "Главная", icon: Home },
   { id: "projects", label: "Проекты", icon: FolderGit2 },
   { id: "agents", label: "Агенты", icon: Bot },
-  { id: "tools", label: "Инструменты", icon: Wrench },
-  { id: "control", label: "Управление", icon: Rocket },
+  { id: "tools", label: "Инструменты", short: "Тулзы", icon: Wrench },
+  { id: "control", label: "Управление", short: "Контроль", icon: Rocket },
+  { id: "vercel", label: "Vercel", icon: Activity },
 ];
 
 const STUDIOS: { id: StudioId; title: string; desc: string; icon: typeof Bot; color: string }[] = [
@@ -159,11 +161,13 @@ function Shell() {
   const [projects, setProjects] = useState<ProjectRecord[]>([]);
   const reload = useCallback(() => void listProjects().then(setProjects).catch(() => undefined), []);
   useEffect(() => {
-    const h = window.location.hash.slice(1) as View;
+    // `?view=vercel` is used by the Vercel connect redirects (they cannot carry a #hash).
+    const q = new URLSearchParams(window.location.search).get("view") as View | null;
+    const h = (q ?? window.location.hash.slice(1)) as View;
     if (NAV.some((n) => n.id === h)) setView(h);
     reload();
   }, [reload]);
-  const go = (v: View) => { setView(v); setStudio(null); history.replaceState(null, "", `#${v}`); };
+  const go = (v: View) => { setView(v); setStudio(null); history.replaceState(null, "", `${window.location.pathname}#${v}`); };
 
   const content = studio && view === "home"
     ? <StudioHost id={studio} onBack={() => setStudio(null)} onChanged={reload} />
@@ -171,6 +175,7 @@ function Shell() {
     : view === "projects" ? <ProjectsView projects={projects} onReload={reload} />
     : view === "agents" ? <div className="mx-auto w-full max-w-5xl p-4 sm:p-6"><ActivityMonitor projects={projects} /></div>
     : view === "tools" ? <ToolsView />
+    : view === "vercel" ? <VercelMonitor />
     : <div className="mx-auto w-full max-w-5xl p-4 sm:p-6"><ControlCenter projects={projects} onChange={reload} /></div>;
 
   return (
@@ -190,10 +195,10 @@ function Shell() {
           <Link href="/code/ide" className="ml-auto inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-border-strong px-3 text-xs text-subtle"><SquareTerminal className="size-4" />IDE</Link>
         </header>
         <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">{content}</main>
-        <nav className="grid shrink-0 grid-cols-5 border-t border-border bg-panel pb-[env(safe-area-inset-bottom)] md:hidden" aria-label="Разделы Code Studio">
+        <nav className="grid shrink-0 grid-cols-6 border-t border-border bg-panel pb-[env(safe-area-inset-bottom)] md:hidden" aria-label="Разделы Code Studio">
           {NAV.map((n) => (
-            <button key={n.id} onClick={() => go(n.id)} aria-current={view === n.id ? "page" : undefined} className={cn("flex h-14 flex-col items-center justify-center gap-0.5 text-[10px] font-medium", view === n.id ? "text-foreground" : "text-muted")}>
-              <n.icon className={cn("size-5", view === n.id && "text-accent-soft")} />{n.label}
+            <button key={n.id} onClick={() => go(n.id)} aria-current={view === n.id ? "page" : undefined} className={cn("flex h-14 min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 text-[9.5px] font-medium", view === n.id ? "text-foreground" : "text-muted")}>
+              <n.icon className={cn("size-5", view === n.id && "text-accent-soft")} />{n.short ?? n.label}
             </button>
           ))}
         </nav>

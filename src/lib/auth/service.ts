@@ -5,7 +5,8 @@ import { decryptSecret, encryptSecret } from "./crypto";
 import { AuthError, getDb } from "./db";
 import * as github from "./providers/github";
 
-export type ProviderId = "github" | "vercel";
+/** `vercel_monitor` = the separate, read-only Vercel Monitor integration (never mixed with the `vercel` Control Center connection). */
+export type ProviderId = "github" | "vercel" | "vercel_monitor";
 
 export interface IdentityProfile {
   id: string;

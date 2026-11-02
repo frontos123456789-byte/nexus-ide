@@ -25,7 +25,8 @@ describe("token encryption", () => {
   });
   it("rejects tampering and unknown versions", () => {
     const env = encryptSecret("x", "a");
-    const flipped = env.slice(0, -2) + (env.endsWith("A") ? "B" : "A") + env.slice(-1);
+    const i = env.length - 2; // a fully-used base64 character inside the GCM payload; guaranteed to differ from the original
+    const flipped = env.slice(0, i) + (env[i] === "A" ? "B" : "A") + env.slice(i + 1);
     expect(decryptSecret(flipped, "a")).toBeNull();
     expect(decryptSecret("v9.abc", "a")).toBeNull();
   });

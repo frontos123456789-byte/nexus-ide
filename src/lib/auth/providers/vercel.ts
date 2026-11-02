@@ -1,4 +1,4 @@
-import { urls, vercelConfig } from "../config";
+import { urls, vercelConfig, vercelMonitorConfig } from "../config";
 
 /**
  * Vercel.
@@ -101,6 +101,9 @@ export async function revokeSignInToken(token: string): Promise<void> {
 
 export const integrationInstallUrl = (state: string): string => `${urls.vercelWeb()}/integrations/${encodeURIComponent(vercelConfig().integrationSlug ?? "")}/new?state=${encodeURIComponent(state)}`;
 
+/** Install URL of the read-only Vercel Monitor integration. */
+export const monitorInstallUrl = (state: string): string => `${urls.vercelWeb()}/integrations/${encodeURIComponent(vercelMonitorConfig().slug ?? "")}/new?state=${encodeURIComponent(state)}`;
+
 export interface IntegrationToken {
   accessToken: string;
   teamId: string | null;
@@ -108,8 +111,8 @@ export interface IntegrationToken {
   userId: string | null;
 }
 
-export async function exchangeIntegrationCode(code: string, redirectUri: string): Promise<IntegrationToken> {
-  const c = vercelConfig();
+export async function exchangeIntegrationCode(code: string, redirectUri: string, app: "control" | "monitor" = "control"): Promise<IntegrationToken> {
+  const c = app === "monitor" ? { integrationId: vercelMonitorConfig().clientId, integrationSecret: vercelMonitorConfig().clientSecret } : vercelConfig();
   const res = await fetch(`${urls.vercelApi()}/v2/oauth/access_token`, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },

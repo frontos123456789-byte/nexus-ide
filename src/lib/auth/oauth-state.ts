@@ -9,7 +9,7 @@ import { clearCookie, parseCookies, serializeCookie } from "./session";
  * SameSite=Lax is required here: the provider redirects back with a top-level GET navigation.
  */
 
-export type FlowKind = "login" | "link" | "github-install" | "vercel-install";
+export type FlowKind = "login" | "link" | "github-install" | "vercel-install" | "vercel-monitor-install";
 
 export interface OAuthFlow {
   kind: FlowKind;
