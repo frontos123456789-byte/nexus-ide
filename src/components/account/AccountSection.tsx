@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { authErrorMessage, consumeAuthParams, disconnect, fetchAccount, logout, manage, unlinkIdentity, type AccountView } from "@/lib/auth/client";
 import { callIntegration } from "@/lib/integrations/client";
 import { Btn, Card, inputCls, Notice, Pill } from "@/components/code/ui";
+import { LegalLinks } from "@/components/legal/LegalLinks";
 
 export function GithubMark({ className = "size-5" }: { className?: string }) {
   return (
@@ -88,6 +89,7 @@ export function AccountSection() {
         <p className="text-sm text-subtle">Войдите, чтобы подключить GitHub и Vercel через официальную авторизацию — без ручного ввода токенов.</p>
         <LoginButtons acc={acc} href={loginHref} />
         {!acc.configured.database && <Notice tone="warn">На сервере не настроена база данных (DATABASE_URL) — вход недоступен.</Notice>}
+        <p className="text-[11px] text-muted"><LegalLinks prefix="Входя, вы принимаете (English):" /></p>
       </div>
     );
   }
@@ -150,6 +152,7 @@ export function AccountSection() {
         )}
         {vcIdentity && <button className="min-h-9 text-[11px] text-muted underline decoration-dotted" onClick={() => { if (confirm("Отвязать вход через Vercel?")) void run("unlink-vc", () => unlinkIdentity("vercel"), "Vercel отвязан"); }}>Отвязать вход через Vercel</button>}
       </Card>
+      <p className="text-center text-[11px] text-muted"><LegalLinks prefix="Юридические документы (English):" /></p>
     </div>
   );
 }

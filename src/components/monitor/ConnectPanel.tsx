@@ -7,6 +7,7 @@ import { connectUrl } from "@/lib/monitor/client";
 import type { MonitorStatus } from "@/lib/monitor/types";
 import { VercelMark } from "@/components/account/AccountSection";
 import { Card, Notice } from "@/components/code/ui";
+import { LegalLinks } from "@/components/legal/LegalLinks";
 
 const DOC_URL = "https://github.com/frontos123456789-byte/nexus-ide/blob/main/docs/VERCEL_MONITOR_SETUP.md";
 const btn = "inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold transition-colors sm:w-auto";
@@ -80,6 +81,9 @@ export function ConnectPanel({ s }: { s: MonitorStatus }) {
           </div>
         </Card>
       )}
+      <p className="text-center text-[11px] leading-relaxed text-muted">
+        Подключая Vercel, вы принимаете условия <LegalLinks prefix="(English):" />. Что именно читается, как хранится токен и как всё удалить — в Privacy Policy.
+      </p>
       {!missing && s.signedIn && !s.configured.integration && <SetupInstructions s={s} />}
       {!missing && !s.signedIn && !s.configured.integration && <SetupInstructions s={s} />}
     </div>

@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { Logo } from "@/components/ide/Layout/Logo";
 import { Notice } from "@/components/code/ui";
 import { authErrorMessage, fetchAccount, type AccountView } from "@/lib/auth/client";
+import { LegalLinks } from "@/components/legal/LegalLinks";
 import { LoginButtons } from "./AccountSection";
 
 export function LoginClient({ error, provider, next }: { error?: string; provider?: string; next: string }) {
@@ -44,6 +45,10 @@ export function LoginClient({ error, provider, next }: { error?: string; provide
         </ul>
 
         <Link href={next} className="flex min-h-11 items-center justify-center rounded-xl text-sm text-subtle hover:bg-hover">Продолжить без аккаунта</Link>
+
+        <p className="text-center text-[11px] leading-relaxed text-muted">
+          <LegalLinks prefix="Входя, вы принимаете (English):" />
+        </p>
       </section>
     </main>
   );

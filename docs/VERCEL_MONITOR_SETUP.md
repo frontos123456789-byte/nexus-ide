@@ -23,7 +23,9 @@ Vercel → **Dashboard → Integrations → Developer / Create** (`https://verce
 | Developer / Contact e-mail | ваш e-mail |
 | Short / Long description | «Read-only monitor of projects and deployments» |
 | Logo | любое квадратное изображение |
-| Website / Docs / Support / Privacy / Terms URL | `https://nexus-ide-lime.vercel.app` (или ваши страницы) |
+| Website / Docs / Support URL | `https://nexus-ide-lime.vercel.app` (или ваши страницы) |
+| **Privacy Policy URL** | `https://nexus-ide-lime.vercel.app/legal/privacy` — публиковать **только после** заполнения `src/lib/legal/config.ts` (см. `docs/LEGAL_PAGES.md`) |
+| **Terms / EULA URL** | `https://nexus-ide-lime.vercel.app/legal/eula` — то же условие |
 | **Redirect URL** | `https://nexus-ide-lime.vercel.app/api/integrations/vercel-monitor/callback` |
 | **Webhook URL** (необязательно) | `https://nexus-ide-lime.vercel.app/api/webhooks/vercel` |
 | Webhook events | `integration-configuration.removed` (чтобы Nexus сразу забыл токен, если интеграцию удалили на Vercel) |

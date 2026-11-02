@@ -9,6 +9,7 @@ import { matchesFilters } from "@/lib/monitor/normalize";
 import { STATUSES, type DeployEnv, type DeployStatus, type MonitorProject, type MonitorStatus } from "@/lib/monitor/types";
 import { cn } from "@/lib/utils/cn";
 import { Btn, Card, Notice, Pill } from "@/components/code/ui";
+import { LegalLinks } from "@/components/legal/LegalLinks";
 import { ConnectPanel } from "./ConnectPanel";
 import { DeploymentCard } from "./DeploymentCard";
 import { NotificationBell } from "./NotificationBell";
@@ -162,6 +163,7 @@ function Dashboard({ status, onDisconnected }: { status: MonitorStatus; onDiscon
           {!m.cursor && list.length > 0 && <p className="py-2 text-center text-[11px] text-muted">Это вся история по выбранным фильтрам.</p>}
         </section>
       </div>
+      <p className="pt-2 text-center text-[11px] text-muted"><LegalLinks prefix="Nexus Vercel Monitor:" /></p>
     </div>
   );
 }
