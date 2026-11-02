@@ -23,13 +23,13 @@ import { Btn, Card, Pill } from "./ui";
 type View = "home" | "projects" | "agents" | "tools" | "control" | "vercel";
 type StudioId = "telegram" | "website" | "presentation";
 
-const NAV: { id: View; label: string; short?: string; icon: typeof Home }[] = [
+const NAV: { id: View; label: string; short?: string; icon: typeof Home; hidden?: boolean }[] = [
   { id: "home", label: "Главная", icon: Home },
   { id: "projects", label: "Проекты", icon: FolderGit2 },
   { id: "agents", label: "Агенты", icon: Bot },
   { id: "tools", label: "Инструменты", short: "Тулзы", icon: Wrench },
   { id: "control", label: "Управление", short: "Контроль", icon: Rocket },
-  { id: "vercel", label: "Vercel", icon: Activity },
+  { id: "vercel", label: "Монитор Vercel", icon: Activity, hidden: true },
 ];
 
 const STUDIOS: { id: StudioId; title: string; desc: string; icon: typeof Bot; color: string }[] = [
@@ -43,7 +43,7 @@ function HomeView({ projects, onOpen, onReload }: { projects: ProjectRecord[]; o
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6 p-4 sm:p-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Nexus Code Studio</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Центр разработчика</h1>
         <p className="text-sm text-muted">Три направления и полноценная IDE. Проекты хранятся локально и открываются в редакторе Monaco.</p>
       </div>
       <div className="grid gap-3 md:grid-cols-3">
@@ -115,8 +115,8 @@ function ToolsView() {
   return (
     <div className="mx-auto w-full max-w-5xl space-y-4 p-4 sm:p-6">
       <div className="flex flex-wrap items-center gap-2">
-        <h1 className="text-xl font-semibold">Nexus Features</h1><Pill tone="accent">{TOOLS.length} инструментов</Pill>
-        <Btn className="ml-auto" onClick={() => setOpen(true)}><Layers className="size-4" />Открыть хаб</Btn>
+        <h1 className="text-xl font-semibold">Инструменты</h1><Pill tone="accent">{TOOLS.length} инструментов</Pill>
+        <Link href="/code?view=vercel" className="ml-auto inline-flex min-h-11 items-center rounded-xl border border-border-strong px-4 text-sm text-subtle hover:bg-hover">Монитор Vercel</Link><Btn onClick={() => setOpen(true)}><Layers className="size-4" />Открыть хаб</Btn>
       </div>
       <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Найти инструмент…" aria-label="Поиск инструмента" className="min-h-11 w-full rounded-xl border border-border-strong bg-background px-3 text-[16px] outline-none focus:border-accent sm:text-sm" />
       {WORKSPACES.map((w) => {
@@ -182,21 +182,21 @@ function Shell() {
     <div className="fixed left-0 flex w-full overflow-hidden bg-background text-foreground" style={{ top: "var(--app-top, 0px)", height: "var(--app-h, 100dvh)" }}>
       <nav className="hidden w-56 shrink-0 flex-col border-r border-border bg-panel p-3 md:flex" aria-label="Code Studio">
         <div className="mb-4 flex items-center gap-2 px-2 pt-1"><Logo className="size-6" /><span className="font-semibold">Code Studio</span></div>
-        {NAV.map((n) => (
+        {NAV.filter((n) => !n.hidden).map((n) => (
           <button key={n.id} onClick={() => go(n.id)} aria-current={view === n.id ? "page" : undefined} className={cn("flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm", view === n.id ? "bg-accent/15 text-foreground" : "text-subtle hover:bg-hover")}><n.icon className="size-4" />{n.label}</button>
         ))}
         <Link href="/code/ide" className="mt-1 flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm text-subtle hover:bg-hover"><SquareTerminal className="size-4" />IDE</Link>
-        <Link href="/" className="mt-auto flex min-h-11 items-center gap-3 rounded-xl border border-border-strong px-3 text-sm text-subtle hover:bg-hover"><ArrowLeft className="size-4" />Nexus AI</Link>
+        <Link href="/" className="mt-auto flex min-h-11 items-center gap-3 rounded-xl border border-border-strong px-3 text-sm text-subtle hover:bg-hover"><ArrowLeft className="size-4" />На главную Nexus</Link>
       </nav>
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex shrink-0 items-center gap-2 border-b border-border px-3 pb-2 pt-[max(8px,env(safe-area-inset-top))] md:hidden">
-          <Link href="/" aria-label="Вернуться в Nexus AI" className="grid size-11 place-items-center rounded-xl text-subtle hover:bg-hover"><ArrowLeft className="size-5" /></Link>
+          <Link href="/" aria-label="Вернуться на главную Nexus" className="grid size-11 place-items-center rounded-xl text-subtle hover:bg-hover"><ArrowLeft className="size-5" /></Link>
           <Logo className="size-5" /><span className="font-semibold">Code Studio</span>
           <Link href="/code/ide" className="ml-auto inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-border-strong px-3 text-xs text-subtle"><SquareTerminal className="size-4" />IDE</Link>
         </header>
         <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">{content}</main>
-        <nav className="grid shrink-0 grid-cols-6 border-t border-border bg-panel pb-[env(safe-area-inset-bottom)] md:hidden" aria-label="Разделы Code Studio">
-          {NAV.map((n) => (
+        <nav className="grid shrink-0 grid-cols-5 border-t border-border bg-panel pb-[env(safe-area-inset-bottom)] md:hidden" aria-label="Разделы Code Studio">
+          {NAV.filter((n) => !n.hidden).map((n) => (
             <button key={n.id} onClick={() => go(n.id)} aria-current={view === n.id ? "page" : undefined} className={cn("flex h-14 min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 text-[9.5px] font-medium", view === n.id ? "text-foreground" : "text-muted")}>
               <n.icon className={cn("size-5", view === n.id && "text-accent-soft")} />{n.short ?? n.label}
             </button>

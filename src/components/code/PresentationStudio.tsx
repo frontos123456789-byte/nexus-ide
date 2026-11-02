@@ -9,7 +9,7 @@ import { useSettings } from "@/lib/settings/store";
 import { DECK_TEMPLATES, THEMES, deckFromAi, deckFromTemplate, exportPdf, exportPptx, newSlide, themeOf, type Deck, type Slide, type SlideLayout } from "@/lib/studio/deck";
 import { Btn, Card, Field, generateText, inputCls, Notice } from "./ui";
 
-function SlideView({ slide, deck, className }: { slide: Slide; deck: Deck; className?: string }) {
+export function SlideView({ slide, deck, className }: { slide: Slide; deck: Deck; className?: string }) {
   const t = themeOf(deck.theme);
   const box = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.3);
@@ -42,7 +42,7 @@ function SlideView({ slide, deck, className }: { slide: Slide; deck: Deck; class
   );
 }
 
-function Presenter({ deck, start, onClose }: { deck: Deck; start: number; onClose: () => void }) {
+export function Presenter({ deck, start, onClose }: { deck: Deck; start: number; onClose: () => void }) {
   const [i, setI] = useState(start);
   useEffect(() => {
     document.documentElement.requestFullscreen?.().catch(() => undefined);

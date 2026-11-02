@@ -2,9 +2,12 @@
 
 import type { ReactNode } from "react";
 import { Toaster } from "sonner";
+import { useEffect } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useSettings } from "@/lib/settings/store";
 
 export function Providers({ children }: { children: ReactNode }) {
+  useEffect(() => useSettings.getState().hydrate(), []);
   return (
     <TooltipProvider>
       {children}

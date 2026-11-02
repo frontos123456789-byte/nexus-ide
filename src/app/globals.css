@@ -15,9 +15,9 @@
   --color-panel-2: #121215;
   --color-hover: #18181b;
   --color-border: #1e1e22;
-  --color-border-strong: #2b2b31;
-  --color-muted: #71717a;
-  --color-subtle: #a1a1aa;
+  --color-border-strong: #3a3a42;
+  --color-muted: #9a9aa6;
+  --color-subtle: #c3c3cc;
   --color-accent: #6366f1;
   --color-accent-soft: #818cf8;
   --color-role-director: #a78bfa;
@@ -131,6 +131,15 @@
   }
   ::selection {
     background: rgba(99, 102, 241, 0.35);
+  }
+  /* WCAG 2.2: a clearly visible keyboard focus everywhere */
+  :focus-visible {
+    outline: 3px solid #a5b4fc;
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  html {
+    font-size: 100%;
   }
   *::-webkit-scrollbar {
     width: 10px;
@@ -395,5 +404,17 @@
   }
   .monaco-editor .monaco-hover {
     max-width: calc(100vw - 24px) !important;
+  }
+}
+
+/* Respect "reduce motion" */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

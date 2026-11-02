@@ -6,9 +6,9 @@ import { Providers } from "@/components/ide/Layout/Providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Nexus IDE — мульти-агентная среда разработки",
+  title: "Nexus — создайте сайт, бота или презентацию",
   description:
-    "Веб-IDE с ИИ-агентами: Chat, Work и Code. Director оркестрирует Coder, Reviewer и Architect параллельно. Работает на бесплатных моделях OpenRouter.",
+    "Nexus — помощник на базе ИИ. Опишите словами, что хотите: сайт, Telegram-бота, презентацию или приложение — и получите готовый результат.",
   applicationName: "Nexus IDE",
   keywords: ["IDE", "AI", "agents", "Monaco", "OpenRouter", "Next.js"],
   appleWebApp: { capable: true, title: "Nexus IDE", statusBarStyle: "black-translucent" },
@@ -20,8 +20,7 @@ export const viewport: Viewport = {
   colorScheme: "dark",
   width: "device-width",
   initialScale: 1,
-  // Phone IDE: no auto-zoom when focusing the editor/inputs, and draw under notches (safe-area paddings are applied in the UI).
-  maximumScale: 1,
+  // Pinch-zoom stays enabled (WCAG 1.4.4); fields are 16px so iOS does not auto-zoom. Draw under notches (safe-area paddings are applied in the UI).
   viewportFit: "cover",
   interactiveWidget: "resizes-content",
 };

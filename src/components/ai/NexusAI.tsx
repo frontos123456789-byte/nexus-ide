@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUp, Check, Menu, MessageSquare, Paperclip, Pencil, Pin, PinOff, Plus, Search, Settings, Square, Trash2, X, Globe, Workflow } from "lucide-react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import { Logo } from "@/components/ide/Layout/Logo";
 import { searchConversations, useChats, type Attachment } from "@/lib/ai/chat-store";
 import { getDb } from "@/lib/db/schema";
@@ -20,7 +21,7 @@ const SUGGEST: Record<"chat" | "work", string[]> = {
   work: ["Сравни топ-3 бесплатных инструмента для заметок и подготовь таблицу", "Подготовь исследование: тренды ИИ-ассистентов в этом году", "Составь план запуска небольшого онлайн-курса на 6 недель", "Собери актуальные данные о курсе евро и коротко проанализируй"],
 };
 
-const SEARCH_LABEL: Record<SearchMode, string> = { auto: "Auto", on: "Search On", off: "Search Off" };
+const SEARCH_LABEL: Record<SearchMode, string> = { auto: "Поиск: сам решает", on: "Поиск: всегда", off: "Поиск: выключен" };
 const NEXT_SEARCH: Record<SearchMode, SearchMode> = { auto: "on", on: "off", off: "auto" };
 
 function ConversationList({ onPick }: { onPick: () => void }) {
@@ -153,7 +154,7 @@ function Composer() {
             }}
             rows={1}
             enterKeyHint={isMobile ? "enter" : "send"}
-            placeholder={mode === "work" ? "Опишите цель — агент составит план и выполнит его…" : "Спросите о чём угодно…"}
+            placeholder={mode === "work" ? "Опишите задачу — я составлю план и выполню его…" : "Напишите, о чём хотите спросить…"}
             aria-label="Сообщение"
             className="block max-h-56 w-full resize-none bg-transparent px-2 py-1.5 text-[16px] leading-relaxed outline-none placeholder:text-muted"
           />
@@ -165,9 +166,9 @@ function Composer() {
             </button>
             <div className="flex-1" />
             {busy ? (
-              <button onClick={() => useChats.getState().stop()} aria-label="Остановить генерацию" className="grid size-11 place-items-center rounded-xl bg-red-500/90 text-white sm:size-10"><Square className="size-4 fill-current" /></button>
+              <button onClick={() => useChats.getState().stop()} aria-label="Остановить генерацию" className="flex min-h-12 items-center gap-2 rounded-xl bg-red-600 px-4 text-base font-semibold text-white"><Square className="size-4 fill-current" aria-hidden />Остановить</button>
             ) : (
-              <button onClick={submit} disabled={!text.trim() && files.length === 0} aria-label="Отправить" className="grid size-11 place-items-center rounded-xl bg-accent text-white transition-opacity disabled:opacity-30 sm:size-10"><ArrowUp className="size-5" /></button>
+              <button onClick={submit} disabled={!text.trim() && files.length === 0} className="flex min-h-12 items-center gap-2 rounded-xl bg-indigo-500 px-4 text-base font-semibold text-white transition-opacity hover:bg-indigo-400 disabled:opacity-40"><ArrowUp className="size-5" aria-hidden />Отправить</button>
             )}
           </div>
         </div>
@@ -190,7 +191,7 @@ function Thread() {
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-4 py-8">
         <Logo className="size-14" />
         <h1 className="mt-4 text-center text-2xl font-semibold tracking-tight">Чем могу помочь?</h1>
-        <p className="mt-1 max-w-md text-center text-sm text-muted">{mode === "work" ? "Work: опишите цель — ИИ составит план, найдёт информацию в интернете и подготовит результат." : "Nexus AI — универсальный ассистент: вопросы, тексты, учёба, расчёты, переводы, идеи и код."}</p>
+        <p className="mt-1 max-w-md text-center text-sm text-muted">{mode === "work" ? "Режим «Задача»: опишите цель — ИИ составит план, найдёт информацию в интернете и подготовит результат." : "Я помогу с вопросами: вопросы, тексты, учёба, расчёты, переводы, идеи и код."}</p>
         <div className="mt-6 grid w-full max-w-2xl gap-2 sm:grid-cols-2">
           {SUGGEST[mode].map((s) => (
             <button key={s} onClick={() => void useChats.getState().send(s)} className="min-h-14 rounded-xl border border-border bg-panel-2 p-3 text-left text-sm text-subtle transition-colors hover:border-accent/60 hover:text-foreground">{s}</button>
@@ -219,10 +220,21 @@ export function NexusAI() {
   const devMode = useSettings((s) => s.devMode);
   const [drawer, setDrawer] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const router = useRouter();
+  const started = useRef(false);
 
   useEffect(() => {
     useSettings.getState().hydrate();
-    void useChats.getState().init();
+    void useChats.getState().init().then(() => {
+      // A question typed on the home screen starts a fresh conversation right away (once).
+      const q = new URLSearchParams(window.location.search).get("q")?.trim();
+      if (q && !started.current) {
+        started.current = true;
+        window.history.replaceState(null, "", "/chat");
+        useChats.getState().newChat();
+        void useChats.getState().send(q);
+      }
+    });
     // Returning from an OAuth / installation round-trip: open "Аккаунт и подключения" so the result is visible.
     if (new URLSearchParams(window.location.search).get("settings") === "account") setSettingsOpen(true);
   }, []);
@@ -231,7 +243,7 @@ export function NexusAI() {
     <>
       <div className="flex items-center gap-2 px-3 pb-3 pt-[max(12px,env(safe-area-inset-top))]">
         <Logo className="size-6" />
-        <span className="text-[15px] font-semibold tracking-tight">Nexus AI</span>
+        <span className="text-[1.0625rem] font-semibold tracking-tight">Прошлые разговоры</span>
         <button onClick={() => setDrawer(false)} aria-label="Закрыть меню" className="ml-auto grid size-10 place-items-center rounded-lg text-muted hover:bg-hover md:hidden"><X className="size-5" /></button>
       </div>
       <div className="px-3 pb-3">
@@ -239,13 +251,13 @@ export function NexusAI() {
       </div>
       <ConversationList onPick={() => setDrawer(false)} />
       <div className="border-t border-border p-2 pb-[max(8px,env(safe-area-inset-bottom))]">
-        <button onClick={() => { setSettingsOpen(true); setDrawer(false); }} className="flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-sm text-subtle hover:bg-hover"><Settings className="size-4" />Настройки</button>
+        <button onClick={() => { router.push("/settings"); setDrawer(false); }} className="flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-sm text-subtle hover:bg-hover"><Settings className="size-4" />Настройки</button>
       </div>
     </>
   );
 
   return (
-    <div className="fixed left-0 flex w-full overflow-hidden bg-background text-foreground" style={{ top: "var(--app-top, 0px)", height: "var(--app-h, 100dvh)" }}>
+    <div className="flex h-full w-full overflow-hidden bg-background text-foreground">
       <aside className="hidden w-72 shrink-0 flex-col border-r border-border bg-panel md:flex" aria-label="История разговоров">{sidebar}</aside>
       {drawer && (
         <div className="fixed inset-0 z-40 md:hidden">
@@ -255,16 +267,16 @@ export function NexusAI() {
       )}
       <main className="flex min-w-0 flex-1 flex-col">
         <header className="flex shrink-0 items-center gap-2 border-b border-border px-2 pb-2 pt-[max(8px,env(safe-area-inset-top))]">
-          <button onClick={() => setDrawer(true)} aria-label="Открыть историю" className="grid size-11 place-items-center rounded-xl text-subtle hover:bg-hover md:hidden"><Menu className="size-5" /></button>
-          <div role="tablist" aria-label="Режим" className="mx-auto flex rounded-xl border border-border bg-panel-2 p-1 md:mx-0">
-            {([["chat", "Chat", MessageSquare], ["work", "Work", Workflow]] as const).map(([id, label, Icon]) => (
+          <button onClick={() => setDrawer(true)} aria-label="Открыть прошлые разговоры" className="grid size-11 place-items-center rounded-xl text-subtle hover:bg-hover md:hidden"><Menu className="size-5" /></button>
+          <div role="tablist" aria-label="Что сделать: поговорить или поручить задачу" className="mx-auto flex rounded-xl border border-border bg-panel-2 p-1 md:mx-0">
+            {([["chat", "Разговор", MessageSquare], ["work", "Задача", Workflow]] as const).map(([id, label, Icon]) => (
               <button key={id} role="tab" aria-selected={mode === id} onClick={() => useChats.getState().setMode(id)} className={cn("flex min-h-10 min-w-24 items-center justify-center gap-1.5 rounded-lg px-4 text-sm font-medium transition-colors", mode === id ? "bg-accent text-white" : "text-subtle hover:text-foreground")}>
                 <Icon className="size-4" />{label}
               </button>
             ))}
           </div>
           <div className="hidden flex-1 md:block" />
-          <button onClick={() => setSettingsOpen(true)} aria-label="Настройки" className="relative grid size-11 place-items-center rounded-xl text-subtle hover:bg-hover">
+          <button onClick={() => router.push("/settings")} aria-label="Настройки" className="relative grid size-11 place-items-center rounded-xl text-subtle hover:bg-hover">
             <Settings className="size-5" />
             {devMode && <span className="absolute right-2 top-2 size-2 rounded-full bg-emerald-400" title="Режим разработчика включён" />}
           </button>
