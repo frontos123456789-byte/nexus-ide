@@ -1,6 +1,7 @@
 "use client";
 
-import { PanelBottom, PanelLeft, PanelRight, Search } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, PanelBottom, PanelLeft, PanelRight, Search } from "lucide-react";
 import { Tip } from "@/components/ui/tooltip";
 import { Kbd } from "@/components/ui/kbd";
 import { useIdeStore } from "@/lib/store/ide";
@@ -49,6 +50,9 @@ export function TitleBar() {
   return (
     <header className="relative flex h-9 shrink-0 items-center border-b border-border bg-panel px-3 select-none">
       <div className="flex items-center gap-2">
+        <Link href="/code" aria-label="Вернуться в Code Studio" title="Code Studio" className="grid size-6 place-items-center rounded text-muted transition-colors hover:bg-hover hover:text-foreground">
+          <ArrowLeft className="size-4" />
+        </Link>
         <Logo className="size-[18px]" />
         <span className="text-xs font-semibold tracking-tight text-foreground">Nexus IDE</span>
         <span className="hidden text-xs text-muted sm:inline">/ nexus-demo</span>

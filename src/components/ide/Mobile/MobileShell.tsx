@@ -1,6 +1,8 @@
 "use client";
 
-import { Bot, FileCode2, Files, Search, SquareTerminal, Volume2, VolumeX, type LucideIcon } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, Bot, FileCode2, Files, Search, Sparkles, SquareTerminal, Volume2, VolumeX, type LucideIcon } from "lucide-react";
+import { useNexus } from "@/lib/nexus/store";
 import { useAgentStore } from "@/lib/store/agent";
 import { useIdeStore, type MobileTab } from "@/lib/store/ide";
 import { useSoftKeyboard, useVisualViewportVars } from "@/lib/utils/use-mobile";
@@ -31,6 +33,9 @@ function MobileHeader() {
 
   return (
     <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border bg-panel px-3 pt-[env(safe-area-inset-top)] box-content select-none">
+      <Link href="/code" aria-label="Вернуться в Code Studio" className="-ml-2 grid size-10 shrink-0 place-items-center rounded-lg text-subtle active:bg-hover">
+        <ArrowLeft className="size-[18px]" />
+      </Link>
       <Logo className="size-5 shrink-0" />
       <div className="flex min-w-0 flex-col leading-tight">
         <span className="text-[13px] font-semibold tracking-tight text-foreground">Nexus IDE</span>
@@ -68,7 +73,7 @@ function MobileNav() {
   return (
     <nav
       aria-label="Разделы IDE"
-      className="grid shrink-0 grid-cols-4 border-t border-border bg-panel pb-[env(safe-area-inset-bottom)]"
+      className="grid shrink-0 grid-cols-5 border-t border-border bg-panel pb-[env(safe-area-inset-bottom)]"
     >
       {TABS.map(({ id, label, icon: Icon }) => {
         const active = tab === id;
@@ -98,6 +103,13 @@ function MobileNav() {
           </button>
         );
       })}
+      <button
+        onClick={() => useNexus.getState().setOpen(true)}
+        className="relative flex h-14 flex-col items-center justify-center gap-1 text-[10px] font-medium text-muted transition-colors active:bg-hover"
+      >
+        <Sparkles className="size-5" />
+        Nexus
+      </button>
     </nav>
   );
 }

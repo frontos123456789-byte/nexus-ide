@@ -1,5 +1,5 @@
-import { IdeClient } from "@/components/ide/Layout/IdeClient";
+import { NexusAIClient } from "@/components/ai/NexusAIClient";
 
 export default function HomePage() {
-  return <IdeClient />;
+  return <NexusAIClient />;
 }
