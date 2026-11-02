@@ -1,6 +1,7 @@
 "use client";
 
-import { Bot, Files, RotateCcw, Search, SquareTerminal, Volume2, VolumeX } from "lucide-react";
+import { Bot, Files, RotateCcw, Search, Sparkles, SquareTerminal, Volume2, VolumeX } from "lucide-react";
+import { useNexus } from "@/lib/nexus/store";
 import { Tip } from "@/components/ui/tooltip";
 import { useIdeStore } from "@/lib/store/ide";
 import { confirmResetWorkspace } from "@/lib/store/file-actions";
@@ -45,6 +46,7 @@ export function ActivityBar() {
   const bottom = useIdeStore((s) => s.bottomVisible);
   const agent = useIdeStore((s) => s.agentVisible);
   const sound = useIdeStore((s) => s.soundEnabled);
+  const nexusOpen = useNexus((s) => s.open);
   const set = useIdeStore.getState();
   const mac = detectMac();
 
@@ -61,6 +63,10 @@ export function ActivityBar() {
       </Item>
       <Item label="ИИ-агент" shortcut={formatShortcut(SHORTCUTS.agent, mac)} active={agent} onClick={() => (agent ? set.setAgentVisible(false) : set.focusAgent())}>
         <Bot className="size-[18px]" />
+      </Item>
+
+      <Item label="Nexus Features" shortcut="Ctrl+Shift+X" active={nexusOpen} onClick={() => useNexus.getState().setOpen(!nexusOpen)}>
+        <Sparkles className="size-[18px]" />
       </Item>
 
       <div className="mt-auto flex flex-col items-center">

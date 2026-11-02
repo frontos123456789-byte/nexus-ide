@@ -107,3 +107,8 @@ src/lib/store                      Zustand (ide, agent, dialogs), Jotai (editor-
 src/lib/db                         Dexie-схема, ФС поверх IndexedDB, seed
 src/components/ide/{Layout,Editor,Agent,FileTree,Terminal}
 ```
+
+## Nexus Features (50-feature expansion)
+
+Open with **Ctrl/Cmd+Shift+X**, the ✦ button in the activity bar, or the command palette. Five workspaces: AI Agents, Code Intelligence, Visual Studio, DevTools, Nexus Control. Status of every feature and its limits: [`docs/FEATURE_STATUS.md`](docs/FEATURE_STATUS.md); audit and design: [`docs/NEXUS_EXPANSION_PLAN.md`](docs/NEXUS_EXPANSION_PLAN.md).
+Server-side variables are listed in `.env.example`. Privileged routes need `NEXUS_ADMIN_KEY` in production.

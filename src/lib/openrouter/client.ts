@@ -413,6 +413,7 @@ export interface LlmResult {
   reasoning: string;
   model: string;
   label: string;
+  usage?: Usage;
 }
 
 /** Runs a completion to the end, forwarding every event to `onEvent`. */
@@ -421,8 +422,14 @@ export async function runLlm(options: StreamOptions, onEvent?: (e: LlmEvent) => 
   let reasoning = "";
   let model = "";
   let label = "";
+  let usage: Usage | undefined;
   for await (const e of streamWithFallback(options)) {
     onEvent?.(e);
+    if (e.type === "done") {
+      usage = e.usage;
+      model = e.model;
+      label = e.label;
+    }
     if (e.type === "delta") text += e.content;
     else if (e.type === "reasoning") reasoning += e.content;
     else if (e.type === "reset") {
@@ -433,5 +440,5 @@ export async function runLlm(options: StreamOptions, onEvent?: (e: LlmEvent) => 
       label = e.label;
     } else if (e.type === "error") throw new LlmError(e.kind, e.message, e.failures);
   }
-  return { text, reasoning, model, label };
+  return { text, reasoning, model, label, usage };
 }

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Command } from "cmdk";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import {
+  Sparkles as NexusIcon,
   Bot,
   Brain,
   Eraser,
@@ -23,6 +24,7 @@ import {
 import { toast } from "sonner";
 import { EXAMPLE_PROMPTS } from "@/lib/agents/examples";
 import { useAgentStore } from "@/lib/store/agent";
+import { useNexus } from "@/lib/nexus/store";
 import { runPrompt } from "@/lib/store/agent-actions";
 import { confirmResetWorkspace, promptNewFile, promptNewFolder } from "@/lib/store/file-actions";
 import { useIdeStore, type AgentMode } from "@/lib/store/ide";
@@ -73,6 +75,11 @@ export function CommandPalette() {
       ide().focusAgent();
     };
     return [
+      { id: "nexus-open", label: "Nexus Features: все инструменты", hint: "Ctrl+Shift+X", icon: <NexusIcon />, run: () => useNexus.getState().openTool("agents", null) },
+      { id: "nexus-search", label: "Nexus: семантический поиск по коду", icon: <NexusIcon />, run: () => useNexus.getState().openTool("intelligence", "search") },
+      { id: "nexus-commander", label: "Nexus: центр управления агентами", icon: <NexusIcon />, run: () => useNexus.getState().openTool("agents", "commander") },
+      { id: "nexus-mission", label: "Nexus: Mission Control", icon: <NexusIcon />, run: () => useNexus.getState().openTool("control", "mission") },
+      { id: "nexus-snapshot", label: "Nexus: Time Machine (снапшоты)", icon: <NexusIcon />, run: () => useNexus.getState().openTool("control", "timemachine") },
       { id: "mode-chat", label: "Режим агента: Chat", hint: "Alt+1", icon: <MessageSquare />, run: setMode("chat") },
       { id: "mode-work", label: "Режим агента: Work", hint: "Alt+2", icon: <ListChecks />, run: setMode("work") },
       { id: "mode-code", label: "Режим агента: Code", hint: "Alt+3", icon: <Workflow />, run: setMode("code") },

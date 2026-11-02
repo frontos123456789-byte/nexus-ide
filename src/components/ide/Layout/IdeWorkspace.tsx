@@ -19,6 +19,7 @@ import { TitleBar } from "./TitleBar";
 import { useIdeHotkeys } from "./useIdeHotkeys";
 import { useIsMobile } from "@/lib/utils/use-mobile";
 import { MobileShell } from "../Mobile/MobileShell";
+import { NexusRoot } from "@/components/nexus/NexusRoot";
 
 function HandleH() {
   return <PanelResizeHandle className="resize-handle" />;
@@ -91,7 +92,14 @@ export function IdeWorkspace() {
   }, [ready, firstRun]);
 
   if (!ready) return <BootScreen />;
-  if (isMobile) return <MobileShell />;
+  if (isMobile) {
+    return (
+      <>
+        <MobileShell />
+        <NexusRoot />
+      </>
+    );
+  }
 
   return (
     <div className="flex h-dvh w-screen flex-col overflow-hidden bg-background text-foreground">
@@ -135,6 +143,7 @@ export function IdeWorkspace() {
       <StatusBar />
       <CommandPalette />
       <DialogHost />
+      <NexusRoot />
     </div>
   );
 }
